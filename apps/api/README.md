@@ -16,14 +16,17 @@ En Windows: `gradlew.bat test`.
 Las pruebas que levantan la app o usan PostgreSQL solo corren si está definida `DB_URL`
 (p. ej. `jdbc:postgresql://localhost:5432/businu`).
 
-## Módulos (`com.lau.api`)
-| Paquete | Contenido |
+## Estructura (`com.lau.api`)
+| Carpeta | Contenido |
 |---|---|
-| `compartido` | `BaseEntity` (UUID, versión, auditoría), calendario operativo con festivos de Colombia |
-| `catalogos` | Embarcaderos y catálogo de ítems (repuestos/insumos y novedades) |
-| `flota` | Embarcación (patente única) y motores con horómetro |
-| `mantenimiento` | Hoja de vida (4.3) y proyección del servicio de 100 h |
-| `pasajeros` | Registro de usuarios transportados (4.2), cuadrícula grupo etario × sexo |
-| `personal` | Personal, usuarios del sistema, documentos y requisitos por cargo (4.6) |
+| `config` | Auditoría JPA y reloj en hora de Colombia |
+| `controllers` | Endpoints REST (pendiente) |
+| `domain` | Entidades JPA: flota, hoja de vida (4.3), pasajeros (4.2), personal (4.6), catálogos |
+| `domain/enums` | Enumeraciones del dominio |
+| `dto` | Objetos de entrada/salida (p. ej. `ProyeccionServicio`) |
+| `exceptions` | `ReglaNegocioException` |
+| `mappers` | Conversión entidad ↔ DTO (pendiente) |
+| `repositories` | Repositorios Spring Data JPA |
+| `services` | Calendario operativo, cálculo del próximo servicio de 100 h |
 
 El esquema lo controla Flyway (`src/main/resources/db/migration`); Hibernate solo lo valida.

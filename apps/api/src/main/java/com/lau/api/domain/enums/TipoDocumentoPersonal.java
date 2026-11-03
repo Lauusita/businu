@@ -1,0 +1,17 @@
+package com.lau.api.domain.enums;
+
+/** Documentos exigidos por el anexo técnico (§6, §7.3.1). */
+public enum TipoDocumentoPersonal {
+    DOCUMENTO_IDENTIDAD,
+    HOJA_VIDA_FUNCION_PUBLICA,
+    CERTIFICADO_FORMACION,
+    CERTIFICADO_EXPERIENCIA,
+    TARJETA_PROFESIONAL,
+    LICENCIA_TRIPULANTE,
+    CERTIFICADO_COMPETENCIA,
+    AFILIACION_EPS,
+    AFILIACION_PENSION,
+    AFILIACION_ARL,
+    AFILIACION_CAJA_COMPENSACION,
+    PLANILLA_PILA;
+}
