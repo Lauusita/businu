@@ -21,7 +21,7 @@ Las pruebas que levantan la app o usan PostgreSQL solo corren si está definida 
 |---|---|
 | `config` | Auditoría JPA y reloj en hora de Colombia |
 | `controllers` | Endpoints REST (pendiente) |
-| `domain` | Entidades JPA: flota, hoja de vida (4.3), pasajeros (4.2), personal (4.6), catálogos |
+| `domain` | Entidades JPA: flota, hoja de vida (4.3), usuarios transportados (4.2), personal y usuarios del sistema (4.6), catálogos |
 | `domain/enums` | Enumeraciones del dominio |
 | `dto` | Objetos de entrada/salida (p. ej. `ProyeccionServicio`) |
 | `exceptions` | `ReglaNegocioException` |

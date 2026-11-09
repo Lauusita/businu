@@ -7,7 +7,7 @@ import com.lau.api.domain.Embarcadero;
 import com.lau.api.domain.Mantenimiento;
 import com.lau.api.domain.Motor;
 import com.lau.api.domain.Personal;
-import com.lau.api.domain.RegistroPasajeros;
+import com.lau.api.domain.Usuario;
 import com.lau.api.domain.UsuarioSistema;
 import com.lau.api.domain.enums.Cargo;
 import com.lau.api.domain.enums.EstadoProyeccion;
@@ -27,7 +27,7 @@ import com.lau.api.repositories.EmbarcacionRepository;
 import com.lau.api.repositories.EmbarcaderoRepository;
 import com.lau.api.repositories.MantenimientoRepository;
 import com.lau.api.repositories.PersonalRepository;
-import com.lau.api.repositories.RegistroPasajerosRepository;
+import com.lau.api.repositories.UsuarioRepository;
 import com.lau.api.repositories.RequisitoDocumentalRepository;
 import com.lau.api.repositories.UsuarioSistemaRepository;
 import com.lau.api.services.ProximoServicioService;
@@ -57,7 +57,7 @@ class PersistenciaIntegracionTest {
     @Autowired MantenimientoRepository mantenimientos;
     @Autowired PersonalRepository personal;
     @Autowired UsuarioSistemaRepository usuarios;
-    @Autowired RegistroPasajerosRepository registros;
+    @Autowired UsuarioRepository usuariosTransportados;
     @Autowired RequisitoDocumentalRepository requisitos;
     @Autowired ProximoServicioService proximoServicio;
 
@@ -109,11 +109,16 @@ class PersistenciaIntegracionTest {
         List<Embarcadero> e = embarcaderos.findByActivoTrueOrderByOrdenRuta();
 
         UUID idCliente = UUID.randomUUID();
-        RegistroPasajeros r = new RegistroPasajeros(idCliente, Instant.now(), e.get(0), e.get(2), usuario);
-        r.establecerCantidad(GrupoEtario.JUVENTUD, Sexo.MUJER, 4);
-        r.establecerCantidad(GrupoEtario.ADULTEZ, Sexo.HOMBRE, 6);
-        registros.saveAndFlush(r);
+        Usuario u = new Usuario(idCliente, Instant.now(), betanci, e.get(0), e.get(2), 10, usuario);
+        u.registrarSexo(Sexo.MUJER, 4);
+        u.registrarSexo(Sexo.HOMBRE, 6);
+        u.registrarGrupoEtario(GrupoEtario.PRIMERA_INFANCIA, 2);
+        u.registrarGrupoEtario(GrupoEtario.ADULTEZ, 8);
+        usuariosTransportados.saveAndFlush(u);
 
-        assertThat(registros.findById(idCliente)).get().extracting(RegistroPasajeros::getTotal).isEqualTo(10);
+        Usuario guardado = usuariosTransportados.findById(idCliente).orElseThrow();
+        assertThat(guardado.getUsuariosTransportados()).isEqualTo(10);
+        assertThat(guardado.getPorSexo()).containsEntry(Sexo.MUJER, 4).containsEntry(Sexo.HOMBRE, 6);
+        assertThat(guardado.getPorGrupoEtario()).containsEntry(GrupoEtario.PRIMERA_INFANCIA, 2);
     }
 }
