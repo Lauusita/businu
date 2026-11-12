@@ -1,4 +1,4 @@
-package com.lau.api.dto;
+package com.lau.api.dto.personal;
 
 import com.lau.api.dominio.enums.Rol;
 

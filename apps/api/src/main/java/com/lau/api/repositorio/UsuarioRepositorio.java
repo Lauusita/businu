@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public abstract class UsuarioRepositorio implements JpaRepository<Usuario, UUID>, JpaSpecificationExecutor<Usuario> {
-    public abstract List<Usuario> findUsuarioByEmbarcaciones(Embarcaciones embarcacion);
-    public abstract List<Usuario> findUsuarioByFechaActualizacion(LocalDateTime fecha);
+public interface UsuarioRepositorio extends JpaRepository<Usuario, UUID>, JpaSpecificationExecutor<Usuario> {
+    public abstract List<Usuario> findUsuarioByOperacion(Embarcaciones embarcacion);
+    public abstract List<Usuario> findUsuarioByActualizadoEn(LocalDateTime fecha);
 
 
 }

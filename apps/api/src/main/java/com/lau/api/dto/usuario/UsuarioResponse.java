@@ -1,4 +1,4 @@
-package com.lau.api.dto;
+package com.lau.api.dto.usuario;
 
 import com.lau.api.dominio.enums.Embarcaciones;
 import com.lau.api.dominio.enums.Embarcaderos;
@@ -12,8 +12,8 @@ public record UsuarioResponse(
         UUID id,
         Instant fechaHora,
         EmbarcacionResumen embarcacion,
-        EmbarcaderoResumen embarcaderoOrigen,
-        EmbarcaderoResumen embarcaderoDestino,
+        EmbarcaderoResumen embarcaderoAbordaje,
+        Map<Embarcaderos, Integer> porDestino,
         int usuariosTransportados,
         Map<Sexo, Integer> porSexo,
         Map<GrupoEtario, Integer> porGrupoEtario,

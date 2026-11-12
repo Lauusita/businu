@@ -1,52 +1,37 @@
 package com.lau.api.controladores;
 
-import com.lau.api.dominio.Embarcacion;
-import com.lau.api.dominio.Personal;
-import com.lau.api.dominio.Usuario;
-import com.lau.api.dto.PersonalAuth;
-import com.lau.api.dto.UsuarioRequest;
-import com.lau.api.dto.UsuarioResponse;
-import com.lau.api.mappers.UsuarioMapper;
-import com.lau.api.servicios.EmbarcacionServicio;
-import com.lau.api.servicios.PersonalServicio;
+import com.lau.api.dto.personal.PersonalAuth;
+import com.lau.api.dto.usuario.UsuarioRequest;
+import com.lau.api.dto.usuario.UsuarioResponse;
 import com.lau.api.servicios.UsuarioServicio;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @CrossOrigin("*")
 @RequestMapping("pasajeros")
 public class UsuarioControlador {
-    private final EmbarcacionServicio embarcacionServicio;
     private final UsuarioServicio usuarioServicio;
-    private final PersonalServicio personalServicio;
-    private final UsuarioMapper usuarioMapper;
 
-    public UsuarioControlador(EmbarcacionServicio embarcacionServicio, PersonalServicio personalServicio, UsuarioServicio usuarioServicio, UsuarioMapper usuarioMapper) {
-        this.embarcacionServicio = embarcacionServicio;
-        this.personalServicio = personalServicio;
+    public UsuarioControlador(UsuarioServicio usuarioServicio) {
         this.usuarioServicio = usuarioServicio;
-        this.usuarioMapper = usuarioMapper;
     }
-    @GetMapping("")
-    public List<Usuario> obtenerTodos() {
-        return usuarioServicio.findAll();
+    @GetMapping
+    public List<UsuarioResponse> obtenerTodos() {
+        return usuarioServicio.obtenerTodos();
     }
 
-    @PostMapping("/crear")
-    public UsuarioResponse registrarPasajeros(
-            @Valid @RequestBody UsuarioRequest usuario,
+    @PostMapping
+    public ResponseEntity<UsuarioResponse> registrarPasajeros(
+            @Valid @RequestBody UsuarioRequest request,
             @AuthenticationPrincipal PersonalAuth auth
     ) {
-        UUID idEmbarcacion = usuario.embarcacionId();
-        Embarcacion embarcacion = embarcacionServicio.buscar(idEmbarcacion);
-        Personal personal = personalServicio.buscarPorId(auth.id());
-        Usuario usuarioMapped = usuarioMapper.requestToUsuario(usuario, embarcacion, personal);
-        usuarioServicio.guardar(usuarioMapped);
-        return usuarioMapper.toResponse(usuarioMapped);
+        UsuarioResponse creado = usuarioServicio.registrar(request, auth.id());
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 }

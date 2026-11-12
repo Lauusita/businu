@@ -26,8 +26,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public abstract class BaseEntity {
 
     @Id
-    @GeneratedValue
-    @UuidGenerator
     @Column(nullable = false, updatable = false)
     private UUID id;
 

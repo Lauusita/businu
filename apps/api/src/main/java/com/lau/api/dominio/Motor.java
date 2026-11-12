@@ -1,6 +1,6 @@
 package com.lau.api.dominio;
 
-import com.lau.api.exceptions.ReglaNegocioException;
+import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -42,7 +42,7 @@ public class Motor extends BaseEntity {
     @Column(name = "potencia_hp", nullable = false)
     private int potenciaHp;
 
-    @Setter(AccessLevel.NONE)
+    
     @Column(name = "horometro_actual", nullable = false, precision = 10, scale = 1)
     private BigDecimal horometroActual;
 
@@ -65,7 +65,7 @@ public class Motor extends BaseEntity {
      */
     public void registrarLectura(BigDecimal lectura) {
         if (lectura.compareTo(horometroActual) < 0) {
-            throw new ReglaNegocioException("La lectura del horómetro (" + lectura
+            throw new BusinessException("La lectura del horómetro (" + lectura
                     + ") no puede ser menor que la actual (" + horometroActual + ") del motor " + serial);
         }
         this.horometroActual = lectura;

@@ -1,16 +1,20 @@
 package com.lau.api.mappers;
 
-import com.lau.api.dominio.Embarcacion;
-import com.lau.api.dominio.Personal;
-import com.lau.api.dominio.Usuario;
+import com.lau.api.dominio.*;
+import com.lau.api.dominio.enums.Embarcaderos;
 import com.lau.api.dominio.enums.GrupoEtario;
 import com.lau.api.dominio.enums.Sexo;
-import com.lau.api.dto.UsuarioRequest;
-import com.lau.api.dto.UsuarioResponse;
-import com.lau.api.dto.UsuarioResponse.EmbarcacionResumen;
-import com.lau.api.dto.UsuarioResponse.EmbarcaderoResumen;
+import com.lau.api.dto.usuario.UsuarioRequest;
+import com.lau.api.dto.usuario.UsuarioResponse;
+import com.lau.api.dto.usuario.UsuarioResponse.EmbarcacionResumen;
+import com.lau.api.dto.usuario.UsuarioResponse.EmbarcaderoResumen;
+
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.stream.Stream;
+
+import com.lau.api.exceptions.NotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,29 +22,39 @@ public class UsuarioMapper {
 
     /** Se llama dentro de la transacción: embarcación y registrador son relaciones LAZY. */
     public UsuarioResponse toResponse(Usuario u) {
-        Embarcacion e = u.getEmbarcacion();
+        Embarcacion e = u.getOperacion().getEmbarcacion();
         return new UsuarioResponse(
                 u.getId(),
                 u.getFechaHora(),
                 new EmbarcacionResumen(e.getId(), e.getNombre(), e.getPatente()),
-                EmbarcaderoResumen.de(u.getEmbarcaderoOrigen()),
-                EmbarcaderoResumen.de(u.getEmbarcaderoDestino()),
+                EmbarcaderoResumen.de(u.getEmbarcaderoAbordaje()),
+                enOrden(Embarcaderos.class, u.getPorDestino()),
                 u.getUsuariosTransportados(),
                 enOrden(Sexo.class, u.getPorSexo()),
                 enOrden(GrupoEtario.class, u.getPorGrupoEtario()),
-                u.getRegistradoPor().getUsername(),
+                u.getRegistradoPor().nombreCompleto(),
                 u.getCreadoEn());
     }
 
-    public Usuario requestToUsuario(UsuarioRequest u, Embarcacion e, Personal p) {
-        return new Usuario(
-                u.fechaHora(),
-                e,
-                u.embarcaderoOrigen(),
-                u.embarcaderoDestino(),
-                u.usuariosTransportados(),
-                p
-        );
+    public Usuario requestToUsuario(UsuarioRequest r, Operacion o, Personal p) {
+        Instant fecha = null;
+        if (o.getParadas().size() == 1) {
+            fecha = o.getFechaHoraInicio();
+        } else {
+            fecha = o.getParadas().stream()
+                    .filter(parada -> parada.getEmbarcadero()
+                            .equals(r.embarcaderoAbordaje()))
+                    .map(Parada::getHoraLlegada)
+                    .findFirst()
+                    .orElseThrow(() -> new NotFoundException("No se encontró el embarcadero"));
+        };
+
+
+        Usuario u = new Usuario(fecha, o, r.embarcaderoAbordaje(), r.usuariosTransportados(), p);
+        r.porSexo().forEach(u::registrarSexo);
+        r.porGrupoEtario().forEach(u::registrarGrupoEtario);
+        r.porDestino().forEach(u::registrarDestino);
+        return u;
     }
 
     /** EnumMap: el JSON sale en el orden del enum (PRIMERA_INFANCIA → PERSONA_MAYOR), no al azar. */

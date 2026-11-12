@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public abstract class EmbarcacionRepositorio implements JpaRepository<Embarcacion, UUID>, JpaSpecificationExecutor<Embarcacion> {
+public interface EmbarcacionRepositorio extends JpaRepository<Embarcacion, UUID>, JpaSpecificationExecutor<Embarcacion> {
 
 }

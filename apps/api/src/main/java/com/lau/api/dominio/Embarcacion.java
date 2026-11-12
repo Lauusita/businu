@@ -51,6 +51,12 @@ public class Embarcacion extends BaseEntity {
     @OneToMany(mappedBy = "embarcacion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Motor> motores = new ArrayList<>();
 
+    public Motor agregarMotor(String marca, String modelo, String serial, int potenciaHp) {
+        Motor motor = new Motor(this, marca, modelo, serial, potenciaHp);
+        motores.add(motor);
+        return motor;
+    }
+
     public Embarcacion(String patente, Embarcaciones nombre, int capacidadPasajeros) {
         this.patente = patente;
         this.nombre = nombre;
