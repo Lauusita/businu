@@ -11,7 +11,7 @@ public enum TipoVinculacion {
 
     public static TipoVinculacion fromString(String value) {
         if (value == null || value.isBlank()) {
-            throw new BusinessException("Rol inválido: " + value);
+            throw new BusinessException("Tipo de vinculación inválido: " + value);
         }
 
         String normalized = value
@@ -22,7 +22,7 @@ public enum TipoVinculacion {
         try {
             return valueOf(normalized);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("Rol inválido: " + value);
+            throw new BusinessException("Tipo de vinculación inválido: " + value);
         }
     }
 }

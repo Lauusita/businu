@@ -6,25 +6,14 @@ import com.lau.api.exceptions.BusinessException;
 import java.util.Locale;
 
 public enum Embarcaderos {
-    RANCHO_GRANDE,
-    CENTRO_CALLE_22,
-    CENTRO_VERDE,
-    UNIVERSIDAD_DE_CORDOBA;
+    RANCHO_GRANDE("Rancho Grande"),
+    CENTRO_CALLE_22("Centro Calle 22"),
+    CENTRO_VERDE("Centro Verde");
+    // UNIVERSIDAD_DE_CORDOBA; no entra en prueba piloto
 
-    public static Embarcaderos fromString(String value) {
-        if (value == null || value.isBlank()) {
-            throw new BusinessException("Embarcadero inválido: " + value);
-        }
+    private final String descripcion;
 
-        String normalized = value
-                .trim()
-                .toUpperCase(Locale.ROOT)
-                .replace(" ", "_");
-
-        try {
-            return valueOf(normalized);
-        } catch (IllegalArgumentException e) {
-            throw new BusinessException("Embarcadero inválido: " + value);
-        }
+    Embarcaderos(String descripcion) {
+        this.descripcion = descripcion;
     }
 }

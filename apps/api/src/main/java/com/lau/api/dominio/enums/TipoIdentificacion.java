@@ -12,7 +12,7 @@ public enum TipoIdentificacion {
 
     public static TipoIdentificacion fromString(String value) {
         if (value == null || value.isBlank()) {
-            throw new BusinessException("Rol inválido: " + value);
+            throw new BusinessException("Tipo de identificación inválido: " + value);
         }
 
         String normalized = value
@@ -23,7 +23,7 @@ public enum TipoIdentificacion {
         try {
             return valueOf(normalized);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("Rol inválido: " + value);
+            throw new BusinessException("Tipo de identificación inválido: " + value);
         }
     }
 }

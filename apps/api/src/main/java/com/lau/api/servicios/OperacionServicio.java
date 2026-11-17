@@ -18,6 +18,7 @@ import com.lau.api.repositorio.PersonalRepositorio;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -71,9 +72,15 @@ public class OperacionServicio {
     // ---------------------------------------------------------------- Creación (zarpe)
 
     @Transactional
-    public OperacionResponse crear(CrearOperacionRequest r, UUID persoanlId) {
-        Personal registrador = buscarPersonal(persoanlId);
+    public OperacionResponse crear(CrearOperacionRequest r, UUID personalId) {
+        Personal registrador = buscarPersonal(personalId);
         exigirRol(registrador, Rol.OPERADOR_EMBARCACION, Rol.SUPERVISOR);
+
+        if (!registrador.isActivo()) throw new BusinessException("El registrador no se encuentra activo. Acceda con una cuenta que se encuentre activa.");
+
+        if (operaciones.existsByEstadoAndTripulacion_IdIn(EstadoOperacion.EN_CURSO, Collections.singleton(personalId))) {
+            throw new BusinessException("El tripulante ya se encuentra asignado a otra operación en curso");
+        }
 
         Embarcacion embarcacion = embarcaciones.findById(r.embarcacionId())
                 .orElseThrow(() -> new NotFoundException("Embarcación no encontrada"));
@@ -81,16 +88,25 @@ public class OperacionServicio {
             throw new BusinessException("La embarcación " + embarcacion.getNombre()
                     + " ya tiene una operación en curso: finalícela o suspéndala antes de abrir otra");
         }
-        System.out.println(r);
+
+        System.out.println(r.fechaHoraInicio());
+
         Operacion op = new Operacion(embarcacion, r.embarcaderoOrigen(), r.embarcaderoDestino(),
                 ahoraSiNulo(r.fechaHoraInicio()), r.estadoNave(), mapper.toVerificacion(r.verificacion()),
                 r.justificacionVerificacion(), r.condicionClimatica(), r.nivelRio(), r.condicionesMecanicas(),
                 r.detalleCondicionesMecanicas(), registrador);
 
         r.tripulacionIds().forEach(id -> op.agregarTripulante(buscarPersonal(id)));
+
         if (registrador.getRol() == Rol.OPERADOR_EMBARCACION) {
             op.agregarTripulante(registrador);          // quien zarpa va a bordo
         }
+
+        int operadores = op.cantidadDeOperadores(op.getTripulacion());
+
+        if (operadores < 1) throw new BusinessException("Debe al menos estar un operador disponible para la operación");
+        if (operadores < 2) throw new BusinessException("Deben haber 2 operadores para iniciar la operación.");
+
         exigirOperadorABordo(op);
 
         return mapper.toResponse(operaciones.save(op));

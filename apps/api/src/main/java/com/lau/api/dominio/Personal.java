@@ -25,7 +25,7 @@ public class Personal extends BaseEntity {
     @Column(name = "tipo_identificacion", nullable = false, length = 10)
     private TipoIdentificacion tipoIdentificacion;
 
-    @Column(name = "numero_identificacion", nullable = false, length = 20)
+    @Column(name = "numero_identificacion", nullable = false, length = 20, unique = true)
     private String numeroIdentificacion;
 
     @Column(nullable = false, length = 80)

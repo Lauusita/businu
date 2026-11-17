@@ -2,8 +2,12 @@ package com.lau.api.repositorio;
 
 import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.enums.EstadoOperacion;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+
+import com.lau.api.dominio.enums.Rol;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -12,4 +16,6 @@ public interface OperacionRepositorio extends JpaRepository<Operacion, UUID>, Jp
     boolean existsByEmbarcacionIdAndEstado(UUID embarcacionId, EstadoOperacion estado);
 
     List<Operacion> findByEstadoOrderByFechaHoraInicio(EstadoOperacion estado);
+
+    boolean existsByEstadoAndTripulacion_IdIn(EstadoOperacion estado, Collection<UUID> personalIds);
 }

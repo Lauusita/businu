@@ -8,6 +8,7 @@ import com.lau.api.dto.personal.PersonalAuth;
 import com.lau.api.servicios.OperacionServicio;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;

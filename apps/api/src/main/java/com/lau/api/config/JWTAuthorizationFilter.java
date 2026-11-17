@@ -7,8 +7,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.ObjectMapper;
 
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
@@ -17,6 +20,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
     public JWTAuthorizationFilter(TokenUtils tokenUtils) {
         this.tokenUtils = tokenUtils;
     }
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -55,6 +59,6 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
         if (expirado) {
             response.setHeader("X-Token-Expired", "true");
         }
-        response.getWriter().write("{\"error\":\"" + error + "\",\"message\":\"" + mensaje + "\"}");
+        MAPPER.writeValue(response.getWriter(), Map.of("error", error, "message", mensaje));
     }
 }

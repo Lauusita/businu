@@ -4,10 +4,7 @@ import com.lau.api.dominio.enums.Rol;
 import com.lau.api.dto.personal.PersonalAuth;
 import com.lau.api.exceptions.TokenExpiredException;
 import com.lau.api.exceptions.UnauthorizedException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -57,23 +54,49 @@ public class TokenUtils {
     /** Valida firma y vencimiento, y arma la autenticación que llega a @AuthenticationPrincipal. */
     public UsernamePasswordAuthenticationToken getAuthentication(String token) {
         Claims claims;
+
         try {
-            claims = Jwts.parser().verifyWith(clave).build().parseSignedClaims(token).getPayload();
+            claims = Jwts.parser()
+                    .verifyWith(clave)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
         } catch (ExpiredJwtException e) {
             throw new TokenExpiredException("El token ha expirado");
+
         } catch (JwtException | IllegalArgumentException e) {
             throw new UnauthorizedException("Token inválido");
         }
 
         String subject = claims.getSubject();
-        String rolTexto = claims.get(CLAIM_ROL, String.class);
+
+        String rolTexto;
+
+        try {
+            rolTexto = claims.get(CLAIM_ROL, String.class);
+        } catch (RequiredTypeException e) {
+            throw new UnauthorizedException("Token con datos inválidos");
+        }
+
         if (subject == null || rolTexto == null) {
             throw new UnauthorizedException("Token incompleto");
         }
 
-        Rol rol = Rol.valueOf(rolTexto);
-        PersonalAuth principal = new PersonalAuth(rol, UUID.fromString(subject));
-        return new UsernamePasswordAuthenticationToken(principal, null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + rol.name())));
+        try {
+            Rol rol = Rol.valueOf(rolTexto);
+            UUID personalId = UUID.fromString(subject);
+
+            PersonalAuth principal = new PersonalAuth(rol, personalId);
+
+            return new UsernamePasswordAuthenticationToken(
+                    principal,
+                    null,
+                    List.of(new SimpleGrantedAuthority("ROLE_" + rol.name()))
+            );
+
+        } catch (IllegalArgumentException e) {
+            throw new UnauthorizedException("Token con datos inválidos");
+        }
     }
 }

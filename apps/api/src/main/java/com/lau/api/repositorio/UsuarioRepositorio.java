@@ -12,8 +12,7 @@ import java.util.UUID;
 
 @Repository
 public interface UsuarioRepositorio extends JpaRepository<Usuario, UUID>, JpaSpecificationExecutor<Usuario> {
-    public abstract List<Usuario> findUsuarioByOperacion(Embarcaciones embarcacion);
-    public abstract List<Usuario> findUsuarioByActualizadoEn(LocalDateTime fecha);
-
+//    public abstract List<Usuario> findUsuarioByOperacion(Embarcaciones embarcacion);
+//    public abstract List<Usuario> findUsuarioByActualizadoEn(LocalDateTime fecha);
 
 }

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -130,9 +131,25 @@ public class Operacion extends BaseEntity {
             throw new BusinessException(
                     "Hay puntos de la verificación previa sin cumplir: indique la justificación para zarpar");
         }
-        if (condicionesMecanicas.contains(CondicionesMecanicas.OTRA)
-                && (detalleCondicionesMecanicas == null || detalleCondicionesMecanicas.isBlank())) {
-            throw new BusinessException("Debe especificar el detalle de la condición mecánica.");
+
+        Set<CondicionesMecanicas> nuevas =
+                condicionesMecanicas.isEmpty()
+                        ? EnumSet.of(CondicionesMecanicas.SIN_NOVEDAD)
+                        : EnumSet.copyOf(condicionesMecanicas);
+
+        if (nuevas.contains(CondicionesMecanicas.SIN_NOVEDAD)
+                && nuevas.size() > 1) {
+            throw new BusinessException(
+                    "Sin novedad no puede combinarse con otras condiciones"
+            );
+        }
+
+        if (nuevas.contains(CondicionesMecanicas.OTRA)
+                && (detalleCondicionesMecanicas == null
+                || detalleCondicionesMecanicas.isBlank())) {
+            throw new BusinessException(
+                    "Debe especificar el detalle de la condición mecánica."
+            );
         }
 
         this.embarcacion = embarcacion;
@@ -148,8 +165,8 @@ public class Operacion extends BaseEntity {
         this.nivelRio = nivelRio;
         this.registradoPor = registradoPor;
         this.estado = EstadoOperacion.EN_CURSO;
-        this.condicionesMecanicas = condicionesMecanicas;
-        this.detalleCondicionesMecanicas = condicionesMecanicas.contains(CondicionesMecanicas.OTRA)
+        this.condicionesMecanicas = nuevas;
+        this.detalleCondicionesMecanicas = nuevas.contains(CondicionesMecanicas.OTRA)
                 ? detalleCondicionesMecanicas.trim()
                 : NO_APLICA;
         this.paradas.add(new Parada(origen, null, inicio));
@@ -195,7 +212,10 @@ public class Operacion extends BaseEntity {
         return tripulacion.contains(persona);
     }
 
-
+    public int cantidadDeOperadores(Set<Personal> tripulacion) {
+        List<Personal> operadores = tripulacion.stream().filter(personal -> personal.getRol() == Rol.OPERADOR_EMBARCACION).toList();
+        return operadores.size();
+    }
     public void agregarTripulante(Personal persona) {
         if (persona.getRol() != Rol.OPERADOR_EMBARCACION && persona.getRol() != Rol.GUIA_TURISTICA) {
             throw new BusinessException("La tripulación solo incluye operadores de embarcación y guías");

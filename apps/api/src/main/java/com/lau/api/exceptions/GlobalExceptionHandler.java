@@ -1,14 +1,15 @@
-
 package com.lau.api.exceptions;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.HttpClientErrorException;
+import software.amazon.awssdk.core.exception.SdkException;
+import tools.jackson.databind.exc.InvalidFormatException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,10 +17,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Validaciones de DTO (@Valid)
+    // Errores de validación de DTO
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
+    public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Uno o más campos tienen errores"
+        );
 
         Map<String, String> errores = new HashMap<>();
 
@@ -31,53 +36,89 @@ public class GlobalExceptionHandler {
                 errores.put("validacionGeneral", error.getDefaultMessage())
         );
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errores);
+        problem.setProperty("errors", errores);
+
+        return problem;
     }
 
     // Recurso no encontrado
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(
-            NotFoundException ex) {
-
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", ex.getMessage()));
+    public ProblemDetail handleNotFound(NotFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
     }
 
-    // Regla de negocio incumplida
+    // Reglas de negocio
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Map<String, String>> handleBusinessException(
-            BusinessException ex) {
-
-        return ResponseEntity
-                .badRequest()
-                .body(Map.of("error", ex.getMessage()));
+    public ProblemDetail handleBusiness(BusinessException ex) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
     }
 
+    // Errores de integridad de la base de datos
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, String>> handleDataIntegrity(
-            DataIntegrityViolationException ex) {
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
 
         String constraint = "";
-        if (ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException cve) {
-            constraint = cve.getConstraintName() != null ? cve.getConstraintName() : "";
+
+        Throwable causa = ex;
+
+        while (causa != null) {
+            if (causa instanceof org.hibernate.exception.ConstraintViolationException cve) {
+                constraint = cve.getConstraintName() != null
+                        ? cve.getConstraintName()
+                        : "";
+                break;
+            }
+            causa = causa.getCause();
         }
 
         String mensaje = switch (constraint) {
-            case "uk_personal_numero_identificacion" -> "Ya existe una persona con ese número de identificación";
-            case "uk_personal_email" -> "Ya existe una persona con ese correo";
-            default -> "El registro viola una restricción de la base de datos";
+            case "uk_personal_numero_identificacion" ->
+                    "Ya existe una persona con ese número de identificación";
+            case "uk_personal_email" ->
+                    "Ya existe una persona con ese correo";
+            default ->
+                    "El registro viola una restricción de la base de datos";
         };
 
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(Map.of("error", mensaje));
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                mensaje
+        );
     }
 
+    // Conflicto de concurrencia por bloqueo optimista
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ProblemDetail handleOptimisticLock(
+            ObjectOptimisticLockingFailureException ex) {
+
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                "El registro fue modificado por otro usuario. Actualice la información e intente nuevamente."
+        );
+    }
+
+    // Errores del SDK de AWS, por ejemplo S3
+    @ExceptionHandler(SdkException.class)
+    public ProblemDetail handleAws(SdkException ex) {
+
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_GATEWAY,
+                "No fue posible completar la operación con el servicio de almacenamiento"
+        );
+    }
+
+    // No autorizado
     @ExceptionHandler(UnauthorizedException.class)
-    ProblemDetail noAutorizado(UnauthorizedException e) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+    public ProblemDetail handleUnauthorized(UnauthorizedException ex) {
+        return ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                ex.getMessage()
+        );
     }
 }

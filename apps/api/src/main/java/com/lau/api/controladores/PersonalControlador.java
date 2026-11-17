@@ -16,9 +16,8 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin("*")
 @PreAuthorize("hasRole('SUPERVISOR')")
-@RequestMapping("personal")
+@RequestMapping("/personal")
 public class PersonalControlador {
     private final PersonalServicio personalServicio;
     private final PersonalMapper personalMapper;
@@ -48,11 +47,11 @@ public class PersonalControlador {
     }
 
     @PostMapping
-    public ResponseEntity<GeneralResponse> crear(
+    public GeneralResponse crear(
             @Valid() @RequestBody() PersonalDTO personalDTO) {
         Personal personal = personalMapper.requestToPersonal(personalDTO);
         personalServicio.save(personal);
-        return ResponseEntity.ok(new GeneralResponse(HttpStatus.OK, "Operación exitosa"));
+        return new GeneralResponse(HttpStatus.OK, "Operación exitosa");
     }
 
     @PostMapping("desactivar-cuenta/{id}")
