@@ -70,7 +70,6 @@ public class Operacion extends BaseEntity {
     @Column(name = "nivel_rio", nullable = false, length = 10)
     private NivelRio nivelRio;
 
-
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "operacion_condiciones_mecanicas", joinColumns = @JoinColumn(name = "operacion_id"))
     @Enumerated(EnumType.STRING)
@@ -188,7 +187,7 @@ public class Operacion extends BaseEntity {
         return Collections.unmodifiableSet(condicionesMecanicas);
     }
 
-    private static String textoOPorDefecto(String valor, String porDefecto) {
+    public static String textoOPorDefecto(String valor, String porDefecto) {
         return (valor == null || valor.isBlank()) ? porDefecto : valor.trim();
     }
 
