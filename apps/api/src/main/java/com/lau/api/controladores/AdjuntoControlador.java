@@ -34,7 +34,8 @@ public class AdjuntoControlador {
         if (!Set.of("combustible", "mantenimiento", "personal", "general").contains(carpeta)) {
             throw new BusinessException("Carpeta no permitida");
         }
-        Adjunto a = servicio.guardarPdf(carpeta, archivo, personalServicio.buscarPorId(auth.id()));
+
+        Adjunto a = servicio.guardarPdf(carpeta, archivo, auth.id());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new AbastecimientoResponse.SoporteDTO(a.getId(), a.getNombreOriginal(), a.getTamanoBytes(), a.getSha256()));
     }

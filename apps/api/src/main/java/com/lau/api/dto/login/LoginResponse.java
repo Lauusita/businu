@@ -1,4 +1,4 @@
-package com.lau.api.dto;
+package com.lau.api.dto.login;
 
 import com.lau.api.dominio.enums.Rol;
 import java.util.UUID;

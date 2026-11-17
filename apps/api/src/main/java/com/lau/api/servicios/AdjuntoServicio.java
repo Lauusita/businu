@@ -2,6 +2,7 @@ package com.lau.api.servicios;
 
 import com.lau.api.dominio.Adjunto;
 import com.lau.api.dominio.Personal;
+import com.lau.api.dto.personal.PersonalResponse;
 import com.lau.api.exceptions.BusinessException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.repositorio.AdjuntoRepositorio;
@@ -16,6 +17,8 @@ import java.time.ZoneId;
 import java.util.HexFormat;
 import java.util.Objects;
 import java.util.UUID;
+
+import com.lau.api.repositorio.PersonalRepositorio;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,40 +34,13 @@ public class AdjuntoServicio {
     private static final ZoneId COLOMBIA = ZoneId.of("America/Bogota");
 
     private final AdjuntoRepositorio adjuntos;
+    private final PersonalRepositorio personalRepositorio;
     private final S3Servicio s3;
 
-    public AdjuntoServicio(AdjuntoRepositorio adjuntos, S3Servicio s3) {
+    public AdjuntoServicio(AdjuntoRepositorio adjuntos, PersonalRepositorio personalRepositorio, S3Servicio s3) {
         this.adjuntos = adjuntos;
+        this.personalRepositorio = personalRepositorio;
         this.s3 = s3;
-    }
-
-    private record TipoPermitido(String contentType, String extension) { }
-
-    private static TipoPermitido detectarTipo(byte[] b) {
-        if (b.length >= 5 && b[0] == '%' && b[1] == 'P' && b[2] == 'D' && b[3] == 'F' && b[4] == '-') {
-            return new TipoPermitido("application/pdf", "pdf");
-        }
-        if (b.length >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF) {
-            return new TipoPermitido("image/jpeg", "jpg");
-        }
-        if (b.length >= 8 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G') {
-            return new TipoPermitido("image/png", "png");
-        }
-        throw new BusinessException("Solo se aceptan archivos PDF, JPG o PNG");
-    }
-
-    @Transactional
-    public Adjunto guardar(String carpeta, MultipartFile archivo, Personal subidoPor) {
-        byte[] bytes = leer(archivo);                 // vacío / > 10 MB, como antes
-        TipoPermitido tipo = detectarTipo(bytes);
-        String clave = s3.subir(carpeta + "/" + YearMonth.now(COLOMBIA), bytes, tipo.contentType(), tipo.extension());
-        try {
-            return adjuntos.save(new Adjunto(clave, nombreSeguro(archivo), tipo.contentType(),
-                    bytes.length, sha256(bytes), subidoPor));
-        } catch (RuntimeException e) {
-            s3.eliminar(clave);
-            throw e;
-        }
     }
 
     /**
@@ -74,12 +50,14 @@ public class AdjuntoServicio {
      * @param carpeta p. ej. "combustible", "mantenimiento", "personal"
      */
     @Transactional
-    public Adjunto guardarPdf(String carpeta, MultipartFile archivo, Personal subidoPor) {
+    public Adjunto guardarPdf(String carpeta, MultipartFile archivo, UUID subidoPor) {
         byte[] bytes = leerPdf(archivo);
         String clave = s3.subir(carpeta + "/" + YearMonth.now(COLOMBIA), bytes, "application/pdf", "pdf");
         try {
+            Personal personal = personalRepositorio.findById(subidoPor).orElseThrow(() -> new NotFoundException("Personal no encontrado"));
+
             return adjuntos.save(new Adjunto(clave, nombreSeguro(archivo), "application/pdf",
-                    bytes.length, sha256(bytes), subidoPor));
+                    bytes.length, sha256(bytes), personal));
         } catch (RuntimeException e) {
             s3.eliminar(clave);   // si la base falla, no dejar el archivo
             throw e;
@@ -104,7 +82,7 @@ public class AdjuntoServicio {
 
     private static byte[] leerPdf(MultipartFile archivo) {
         if (archivo == null || archivo.isEmpty()) {
-            throw new BusinessException("Adjuntar el documento es obligatorio");
+            throw new BusinessException("El soporte en PDF es obligatorio");
         }
         if (archivo.getSize() > MAX_BYTES) {
             throw new BusinessException("El soporte no puede superar 10 MB");

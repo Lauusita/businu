@@ -13,8 +13,4 @@ public interface AyudaNavegacionRepositorio extends JpaRepository<AyudaNavegacio
     boolean existsByCodigo(String codigo);
 
     List<AyudaNavegacion> findByActivaTrueOrderByCodigo();
-
-    // AyudaNavegacionRepositorio
-    @Query("select distinct a.tipo from AyudaNavegacion a order by a.tipo")
-    List<String> tiposRegistrados();
 }

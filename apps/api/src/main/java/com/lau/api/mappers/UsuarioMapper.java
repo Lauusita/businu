@@ -14,6 +14,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import com.lau.api.exceptions.BusinessException;
 import com.lau.api.exceptions.NotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -36,24 +37,51 @@ public class UsuarioMapper {
                 u.getCreadoEn());
     }
 
-    public Usuario requestToUsuario(UsuarioRequest r, Operacion o, Personal p) {
-        Instant fecha = null;
-        if (o.getParadas().size() == 1) {
-            fecha = o.getFechaHoraInicio();
-        } else {
-            fecha = o.getParadas().stream()
-                    .filter(parada -> parada.getEmbarcadero()
-                            .equals(r.embarcaderoAbordaje()))
-                    .map(Parada::getHoraLlegada)
-                    .findFirst()
-                    .orElseThrow(() -> new NotFoundException("No se encontró el embarcadero"));
-        };
+    public Usuario requestToUsuario(
+            UsuarioRequest r,
+            Operacion o,
+            Personal p
+    ) {
+        Instant fecha = r.fechaHora() != null
+                ? r.fechaHora()
+                : Instant.now();
 
+        if (fecha.isBefore(o.getFechaHoraInicio())) {
+            throw new BusinessException(
+                    "La fecha del abordaje no puede ser anterior al inicio de la operación"
+            );
+        }
 
-        Usuario u = new Usuario(fecha, o, r.embarcaderoAbordaje(), r.usuariosTransportados(), p);
+        if (o.getFechaHoraFin() != null &&
+                fecha.isAfter(o.getFechaHoraFin())) {
+            throw new BusinessException(
+                    "La fecha del abordaje no puede ser posterior al fin de la operación"
+            );
+        }
+
+        boolean embarcaderoValido = o.getParadas().stream()
+                .anyMatch(parada ->
+                        parada.getEmbarcadero().equals(r.embarcaderoAbordaje())
+                );
+
+        if (!embarcaderoValido) {
+            throw new NotFoundException(
+                    "El embarcadero no pertenece a la operación"
+            );
+        }
+
+        Usuario u = new Usuario(
+                fecha,
+                o,
+                r.embarcaderoAbordaje(),
+                r.usuariosTransportados(),
+                p
+        );
+
         r.porSexo().forEach(u::registrarSexo);
         r.porGrupoEtario().forEach(u::registrarGrupoEtario);
         r.porDestino().forEach(u::registrarDestino);
+
         return u;
     }
 

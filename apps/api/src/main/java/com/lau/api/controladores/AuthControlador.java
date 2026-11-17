@@ -1,7 +1,7 @@
 package com.lau.api.controladores;
 
-import com.lau.api.dto.LoginRequest;
-import com.lau.api.dto.LoginResponse;
+import com.lau.api.dto.login.LoginResponse;
+import com.lau.api.dto.login.LoginRequest;
 import com.lau.api.servicios.AuthServicio;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;

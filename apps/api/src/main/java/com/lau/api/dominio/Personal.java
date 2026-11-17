@@ -46,14 +46,10 @@ public class Personal extends BaseEntity {
     private TipoVinculacion tipoVinculacion;
 
     @Column(name = "fecha_vinculacion", nullable = false)
-    private LocalDate fechaVinculacion;
+    private Instant fechaVinculacion;
 
     @Column(name = "fecha_retiro")
-    private LocalDate fechaRetiro;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reemplaza_a_id")
-    private Personal reemplazaA;
+    private Instant fechaRetiro;
 
     @Column(nullable = false)
     private boolean activo;
@@ -65,7 +61,7 @@ public class Personal extends BaseEntity {
     private Instant ultimoAcceso;
 
     public Personal(TipoIdentificacion tipoIdentificacion, String numeroIdentificacion, String nombres,
-                    String apellidos, Rol rol, TipoVinculacion tipoVinculacion, String email, LocalDate fechaVinculacion, String passwordHash) {
+                    String apellidos, Rol rol, TipoVinculacion tipoVinculacion, String email, Instant fechaVinculacion, String passwordHash) {
         this.tipoIdentificacion = tipoIdentificacion;
         this.numeroIdentificacion = numeroIdentificacion;
         this.nombres = nombres;
@@ -78,21 +74,23 @@ public class Personal extends BaseEntity {
         this.passwordHash = passwordHash;
     }
 
-    public void habilitarAcceso(String username, String passwordHash) {
+    public void habilitarAcceso(String passwordHash) {
         if (!rol.usaSistema()) {
             throw new BusinessException("Los guías turísticos no tienen acceso al sistema");
         }
-        this.numeroIdentificacion = username;
         this.passwordHash = passwordHash;
     }
 
     public void revocarAcceso() {
-        this.numeroIdentificacion = null;
         this.passwordHash = null;
     }
 
+    public void desactivarPersonal() {
+        this.activo = false;
+    }
+
     public boolean tieneAcceso() {
-        return activo && numeroIdentificacion != null;
+        return activo && passwordHash != null;
     }
 
     public String nombreCompleto() {

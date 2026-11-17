@@ -2,8 +2,8 @@ package com.lau.api.servicios;
 
 import com.lau.api.config.TokenUtils;
 import com.lau.api.dominio.Personal;
-import com.lau.api.dto.LoginRequest;
-import com.lau.api.dto.LoginResponse;
+import com.lau.api.dto.login.LoginRequest;
+import com.lau.api.dto.login.LoginResponse;
 import com.lau.api.exceptions.UnauthorizedException;
 import com.lau.api.repositorio.PersonalRepositorio;
 import java.time.Instant;

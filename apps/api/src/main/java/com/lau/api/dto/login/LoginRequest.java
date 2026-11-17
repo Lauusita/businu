@@ -1,4 +1,4 @@
-package com.lau.api.dto;
+package com.lau.api.dto.login;
 
 import jakarta.validation.constraints.NotBlank;
 
