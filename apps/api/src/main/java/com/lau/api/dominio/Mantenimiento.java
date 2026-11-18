@@ -1,7 +1,8 @@
 package com.lau.api.dominio;
 
+import com.lau.api.dominio.enums.mantenimiento.SistemaIntervenido;
+import com.lau.api.dominio.enums.mantenimiento.TipoMantenimiento;
 import com.lau.api.dominio.enums.personal.Rol;
-import com.lau.api.dominio.enums.mantenimiento.*;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -79,7 +80,7 @@ public class Mantenimiento extends BaseEntity {
 
     @ElementCollection
     @CollectionTable(name = "mantenimiento_novedades", joinColumns = @JoinColumn(name = "mantenimiento_id"))
-    private List<NovedadMantenimiento> novedades = new ArrayList<>();
+    private List<NovedadMecanica> novedades = new ArrayList<>();
 
     // ---- Recomendaciones (0..3, una por tipo) ----
 
@@ -125,7 +126,7 @@ public class Mantenimiento extends BaseEntity {
             throw new BusinessException("El responsable del mantenimiento debe ser un operador de embarcación");
         }
         if (!responsable.isDisponibilidad()) {
-            throw new BusinessException("El responsable del mantenimiento no se encuentra disponible");
+            throw new BusinessException("El responsable del mantenimiento no se encuentra activo");
         }
         if (costoManoObra != null && costoManoObra.signum() < 0) {
             throw new BusinessException("El costo de mano de obra no puede ser negativo");
@@ -155,11 +156,9 @@ public class Mantenimiento extends BaseEntity {
     }
 
     /** null o vacío = "No aplica / Ninguna". */
-    public void registrarNovedades(List<NovedadMantenimiento> lista) {
+    public void registrarNovedades(List<NovedadMecanica> lista) {
         novedades.clear();
-        if (lista != null) {
-            novedades.addAll(lista);
-        }
+        novedades.addAll(NovedadMecanica.validar(lista));
         sinNovedades = novedades.isEmpty();
     }
 
@@ -204,7 +203,7 @@ public class Mantenimiento extends BaseEntity {
         return Collections.unmodifiableList(repuestos);
     }
 
-    public List<NovedadMantenimiento> getNovedades() {
+    public List<NovedadMecanica> getNovedades() {
         return Collections.unmodifiableList(novedades);
     }
 

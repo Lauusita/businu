@@ -3,6 +3,7 @@ package com.lau.api.mappers;
 import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.VerificacionPrevia;
+import com.lau.api.dto.comun.NovedadMecanicaDTO;
 import com.lau.api.dto.operacion.OperacionResponse;
 import com.lau.api.dto.operacion.OperacionResponse.EmbarcacionResumen;
 import com.lau.api.dto.operacion.OperacionResponse.ParadaResponse;
@@ -45,8 +46,8 @@ public class OperacionMapper {
                 o.getParadas().stream()
                         .map(p -> new ParadaResponse(p.getEmbarcadero().getDescripcion(), p.getHoraLlegada(), p.getHoraSalida()))
                         .toList(),
-                o.getCondicionesMecanicas(),
-                o.getDetalleCondicionesMecanicas(),
+                o.sinNovedadesMecanicas(),
+                NovedadMecanicaDTO.desde(o.getCondicionesMecanicas()),
                 o.getNovedades(),
                 o.getObservaciones(),
                 o.getMotivoSuspension(),

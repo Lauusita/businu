@@ -85,7 +85,7 @@ public class OperacionControlador {
 
     @DeleteMapping("/{id}/tripulacion/{personalId}")
     public OperacionResponse eliminarTripulante(@PathVariable UUID id, @PathVariable UUID personalId,
-                                               @AuthenticationPrincipal PersonalAuth auth) {
+                                                @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.eliminarTripulante(id, personalId, auth.id());
     }
 }

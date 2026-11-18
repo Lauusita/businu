@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lau.api.dominio.enums.operacion.*;
 import com.lau.api.dominio.enums.personal.Rol;
+import com.lau.api.dto.comun.NovedadMecanicaDTO;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record OperacionResponse(
@@ -26,8 +27,8 @@ public record OperacionResponse(
         NivelRio nivelRio,
         List<Tripulante> tripulacion,
         List<ParadaResponse> paradas,
-        Set<CondicionesMecanicas> condicionesMecanicas,
-        String detalleCondicionesMecanicas,
+        boolean sinNovedadesMecanicas,
+        List<NovedadMecanicaDTO> condicionesMecanicas,
         String novedades,
         String observaciones,
         String motivoSuspension,

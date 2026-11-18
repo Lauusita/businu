@@ -188,7 +188,7 @@ public class Bootstrap implements ApplicationRunner {
 
         Operacion op = new Operacion(embarcacion, origen, destino, salida.atZone(COLOMBIA).toInstant(),
                 EstadoNave.BUENO, new VerificacionPrevia(true, true, true, true, true, true, true), null,
-                CondicionClimatica.DESPEJADO, NivelRio.NORMAL, Set.of(CondicionesMecanicas.SIN_NOVEDAD), "",piloto);
+                CondicionClimatica.DESPEJADO, NivelRio.NORMAL, List.of(), piloto);
         op.agregarTripulante(piloto);
         op.agregarTripulante(buscar(auxiliar));
         op.agregarTripulante(buscar(guia));

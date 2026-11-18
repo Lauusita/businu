@@ -71,15 +71,10 @@ public class Operacion extends BaseEntity {
     @Column(name = "nivel_rio", nullable = false, length = 10)
     private NivelRio nivelRio;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    /** Novedades mecánicas del viaje. Vacía = sin novedad. */
+    @ElementCollection
     @CollectionTable(name = "operacion_condiciones_mecanicas", joinColumns = @JoinColumn(name = "operacion_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "condicion", nullable = false, length = 40)
-    private Set<CondicionesMecanicas> condicionesMecanicas = EnumSet.of(CondicionesMecanicas.SIN_NOVEDAD);
-
-    /** Obligatorio si alguna condición es OTRA. */
-    @Column(name = "detalle_condiciones_mecanicas", nullable = false, columnDefinition = "text")
-    private String detalleCondicionesMecanicas = NO_APLICA;
+    private List<NovedadMecanica> condicionesMecanicas = new ArrayList<>();
 
     @Column(name = "justificacion_verificacion", nullable = false, columnDefinition = "text")
     private String justificacionVerificacion = NO_APLICA;
@@ -96,26 +91,25 @@ public class Operacion extends BaseEntity {
     @CollectionTable(name = "operacion_paradas", joinColumns = @JoinColumn(name = "operacion_id"))
     @OrderColumn(name = "orden")
     private List<Parada> paradas = new ArrayList<>();
-    
+
     @Column(name = "motivo_suspension", columnDefinition = "text")
     private String motivoSuspension;
 
     /** Horómetro al finalizar (alimenta el conteo de 100 h de los motores). */
-    
     @Column(name = "horometro_final", precision = 10, scale = 1)
     private BigDecimal horometroFinal;
 
-    
     @OneToMany(mappedBy = "operacion")
     private List<Usuario> usuarios = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "registrado_por_id", nullable = false)
     private Personal registradoPor;
+
     public Operacion(Embarcacion embarcacion, Embarcaderos origen, Embarcaderos destino, Instant inicio,
                      EstadoNave estadoNave, VerificacionPrevia verificacion, String justificacionVerificacion,
-                     CondicionClimatica clima, NivelRio nivelRio, Set<CondicionesMecanicas> condicionesMecanicas,
-                     String detalleCondicionesMecanicas, Personal registradoPor) {
+                     CondicionClimatica clima, NivelRio nivelRio, List<NovedadMecanica> condicionesMecanicas,
+                     Personal registradoPor) {
         if (origen == destino) {
             throw new BusinessException("El embarcadero de origen y el de destino deben ser distintos");
         }
@@ -132,26 +126,6 @@ public class Operacion extends BaseEntity {
                     "Hay puntos de la verificación previa sin cumplir: indique la justificación para zarpar");
         }
 
-        Set<CondicionesMecanicas> nuevas =
-                condicionesMecanicas.isEmpty()
-                        ? EnumSet.of(CondicionesMecanicas.SIN_NOVEDAD)
-                        : EnumSet.copyOf(condicionesMecanicas);
-
-        if (nuevas.contains(CondicionesMecanicas.SIN_NOVEDAD)
-                && nuevas.size() > 1) {
-            throw new BusinessException(
-                    "Sin novedad no puede combinarse con otras condiciones"
-            );
-        }
-
-        if (nuevas.contains(CondicionesMecanicas.OTRA)
-                && (detalleCondicionesMecanicas == null
-                || detalleCondicionesMecanicas.isBlank())) {
-            throw new BusinessException(
-                    "Debe especificar el detalle de la condición mecánica."
-            );
-        }
-
         this.embarcacion = embarcacion;
         this.embarcaderoOrigen = origen;
         this.embarcaderoDestino = destino;
@@ -165,10 +139,7 @@ public class Operacion extends BaseEntity {
         this.nivelRio = nivelRio;
         this.registradoPor = registradoPor;
         this.estado = EstadoOperacion.EN_CURSO;
-        this.condicionesMecanicas = nuevas;
-        this.detalleCondicionesMecanicas = nuevas.contains(CondicionesMecanicas.OTRA)
-                ? detalleCondicionesMecanicas.trim()
-                : NO_APLICA;
+        this.condicionesMecanicas.addAll(NovedadMecanica.validar(condicionesMecanicas));
         this.paradas.add(new Parada(origen, null, inicio));
     }
 
@@ -182,26 +153,20 @@ public class Operacion extends BaseEntity {
         if (observaciones != null) this.observaciones = textoOPorDefecto(observaciones, SIN_OBSERVACIONES);
     }
 
-    /** Reemplaza las condiciones mecánicas reportadas. Vacío = SIN_NOVEDAD. */
-    public void registrarCondicionesMecanicas(Set<CondicionesMecanicas> condiciones, String detalle) {
+    /** Reemplaza las novedades mecánicas reportadas. Lista vacía = sin novedad. */
+    public void registrarCondicionesMecanicas(List<NovedadMecanica> novedades) {
         exigirEnCurso();
-        Set<CondicionesMecanicas> nuevas = (condiciones == null || condiciones.isEmpty())
-                ? EnumSet.of(CondicionesMecanicas.SIN_NOVEDAD)
-                : EnumSet.copyOf(condiciones);
-        if (nuevas.contains(CondicionesMecanicas.SIN_NOVEDAD) && nuevas.size() > 1) {
-            throw new BusinessException("SIN_NOVEDAD no puede combinarse con otras condiciones");
-        }
-        boolean requiereDetalle = nuevas.contains(CondicionesMecanicas.OTRA);
-        if (requiereDetalle && (detalle == null || detalle.isBlank())) {
-            throw new BusinessException("Describa la condición mecánica marcada como OTRA");
-        }
+        List<NovedadMecanica> nuevas = NovedadMecanica.validar(novedades);
         this.condicionesMecanicas.clear();
         this.condicionesMecanicas.addAll(nuevas);
-        this.detalleCondicionesMecanicas = textoOPorDefecto(detalle, NO_APLICA);
     }
 
-    public Set<CondicionesMecanicas> getCondicionesMecanicas() {
-        return Collections.unmodifiableSet(condicionesMecanicas);
+    public List<NovedadMecanica> getCondicionesMecanicas() {
+        return Collections.unmodifiableList(condicionesMecanicas);
+    }
+
+    public boolean sinNovedadesMecanicas() {
+        return condicionesMecanicas.isEmpty();
     }
 
     public static String textoOPorDefecto(String valor, String porDefecto) {
@@ -212,14 +177,10 @@ public class Operacion extends BaseEntity {
         return tripulacion.contains(persona);
     }
 
-    public int cantidadDeOperadores(Set<Personal> tripulacion) {
-        List<Personal> operadores = tripulacion.stream().filter(personal -> personal.getRol() == Rol.OPERADOR_EMBARCACION).toList();
-        return operadores.size();
+    public long cantidadDeOperadores() {
+        return tripulacion.stream().filter(p -> p.getRol() == Rol.OPERADOR_EMBARCACION).count();
     }
 
-    public boolean contieneGuia(Set<Personal> tripulacion) {
-        return tripulacion.stream().anyMatch(personal -> personal.getRol() == Rol.GUIA_TURISTICA);
-    }
     public void agregarTripulante(Personal persona) {
         if (persona.getRol() != Rol.OPERADOR_EMBARCACION && persona.getRol() != Rol.GUIA_TURISTICA) {
             throw new BusinessException("La tripulación solo incluye operadores de embarcación y guías");
@@ -240,6 +201,10 @@ public class Operacion extends BaseEntity {
         persona.setDisponibilidad(true);
     }
 
+    public boolean contieneGuia() {
+        return tripulacion.stream().anyMatch(p -> p.getRol() == Rol.GUIA_TURISTICA);
+    }
+
     /** Parada intermedia (p. ej. Centro – Calle 22). */
     public void registrarParada(Embarcaderos embarcadero, Instant llegada, Instant salida) {
         exigirEnCurso();
@@ -257,8 +222,8 @@ public class Operacion extends BaseEntity {
 
     public void finalizar(Instant fin, BigDecimal horometroFinal) {
         exigirEnCurso();
-        if (!fin.isAfter(fechaHoraInicio)) {
-            throw new BusinessException("La hora de finalización debe ser posterior a la de inicio");
+        if (!fin.isAfter(ultimoMomentoRegistrado())) {
+            throw new BusinessException("La hora de llegada debe ser posterior al zarpe y a la última parada");
         }
         if (totalUsuariosTransportados() == 0) {
             throw new BusinessException("La cantidad total de usuarios transportados no puede ser igual a 0. Registra los usuarios para poder finalizar.");
@@ -274,6 +239,9 @@ public class Operacion extends BaseEntity {
         exigirEnCurso();
         if (motivo == null || motivo.isBlank()) {
             throw new BusinessException("Indique el motivo de la suspensión");
+        }
+        if (!momento.isAfter(fechaHoraInicio)) {
+            throw new BusinessException("La suspensión debe ser posterior al zarpe");
         }
         this.fechaHoraFin = momento;
         this.motivoSuspension = motivo;
@@ -303,6 +271,15 @@ public class Operacion extends BaseEntity {
 
     public List<Usuario> getUsuarios() {
         return Collections.unmodifiableList(usuarios);
+    }
+
+    /** Salida de la última parada registrada (o el zarpe, si no hay paradas intermedias). */
+    private Instant ultimoMomentoRegistrado() {
+        return paradas.stream()
+                .map(p -> p.getHoraSalida() != null ? p.getHoraSalida() : p.getHoraLlegada())
+                .filter(Objects::nonNull)
+                .max(Comparator.naturalOrder())
+                .orElse(fechaHoraInicio);
     }
 
     private void exigirEnCurso() {

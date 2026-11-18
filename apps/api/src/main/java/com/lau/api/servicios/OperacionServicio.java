@@ -7,19 +7,21 @@ import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.operacion.EstadoOperacion;
 import com.lau.api.dominio.enums.personal.Rol;
+import com.lau.api.dto.comun.NovedadMecanicaDTO;
 import com.lau.api.dto.operacion.*;
+import com.lau.api.especificaciones.OperacionSpecs;
 import com.lau.api.exceptions.BusinessException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.mappers.OperacionMapper;
 import com.lau.api.repositorio.EmbarcacionRepositorio;
 import com.lau.api.repositorio.OperacionRepositorio;
-import com.lau.api.especificaciones.OperacionSpecs;
 import com.lau.api.repositorio.PersonalRepositorio;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,22 +31,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class OperacionServicio {
 
-    private static final ZoneId COLOMBIA = ZoneId.of("America/Bogota");
-
     private final OperacionRepositorio operaciones;
     private final EmbarcacionRepositorio embarcaciones;
     private final PersonalRepositorio personal;
     private final OperacionMapper mapper;
-
-    private final HorarioOperacion horarioOperacion;
+    private final HorarioOperacion horario;
 
     public OperacionServicio(OperacionRepositorio operaciones, EmbarcacionRepositorio embarcaciones,
-                             PersonalRepositorio personal, OperacionMapper mapper, HorarioOperacion horarioOperacion) {
+                             PersonalRepositorio personal, OperacionMapper mapper, HorarioOperacion horario) {
         this.operaciones = operaciones;
         this.embarcaciones = embarcaciones;
         this.personal = personal;
         this.mapper = mapper;
-        this.horarioOperacion = horarioOperacion;
+        this.horario = horario;
     }
 
     // ---------------------------------------------------------------- Consultas
@@ -53,8 +52,7 @@ public class OperacionServicio {
         return mapper.toResponse(buscar(id));
     }
 
-    public Page<OperacionResumen> listar(OperacionFilter filter,
-                                         Pageable pageable) {
+    public Page<OperacionResumen> listar(OperacionFilter filter, Pageable pageable) {
         return operaciones.findAll(OperacionSpecs.de(filter), pageable).map(mapper::toResumen);
     }
 
@@ -72,52 +70,48 @@ public class OperacionServicio {
     public OperacionResponse crear(CrearOperacionRequest r, UUID personalId) {
         Personal registrador = buscarPersonal(personalId);
         exigirRol(registrador, Rol.OPERADOR_EMBARCACION, Rol.SUPERVISOR);
-
-        if (!registrador.isDisponibilidad()) throw new BusinessException("El registrador no se encuentra activo. Acceda con una cuenta que se encuentre activa.");
-
-        if (operaciones.existsByEstadoAndTripulacion_IdIn(EstadoOperacion.EN_CURSO, Collections.singleton(personalId))) {
-            throw new BusinessException("El tripulante ya se encuentra asignado a otra operación en curso");
+        if (!registrador.isContratoActivo()) {
+            throw new BusinessException("Su contrato no se encuentra activo: no puede registrar operaciones");
         }
 
         Embarcacion embarcacion = embarcaciones.findById(r.embarcacionId())
                 .orElseThrow(() -> new NotFoundException("Embarcación no encontrada"));
-
         if (operaciones.existsByEmbarcacionIdAndEstado(embarcacion.getId(), EstadoOperacion.EN_CURSO)) {
             throw new BusinessException("La embarcación " + embarcacion.getNombre()
                     + " ya tiene una operación en curso: finalícela o suspéndala antes de abrir otra");
         }
 
         Instant inicio = ahoraSiNulo(r.fechaHoraInicio());
-        horarioOperacion.exigirZarpePermitido(inicio);
+        horario.exigirZarpePermitido(inicio);
 
         Operacion op = new Operacion(embarcacion, r.embarcaderoOrigen(), r.embarcaderoDestino(),
                 inicio, r.estadoNave(), mapper.toVerificacion(r.verificacion()),
-                r.justificacionVerificacion(), r.condicionClimatica(), r.nivelRio(), r.condicionesMecanicas(),
-                r.detalleCondicionesMecanicas(), registrador);
+                r.justificacionVerificacion(), r.condicionClimatica(), r.nivelRio(),
+                NovedadMecanicaDTO.toDominio(r.condicionesMecanicas()), registrador);
 
-        new LinkedHashSet<>(r.tripulacionIds()).forEach(id -> op.agregarTripulante(buscarPersonal(id)));
-
-        if (registrador.getRol() == Rol.OPERADOR_EMBARCACION
-                && op.getTripulacion().stream().noneMatch(t -> t.getId().equals(registrador.getId()))) {
-            op.agregarTripulante(registrador);          // quien zarpa va a bordo
+        Set<UUID> ids = new LinkedHashSet<>(r.tripulacionIds());
+        if (registrador.getRol() == Rol.OPERADOR_EMBARCACION) {
+            ids.add(registrador.getId());                    // quien zarpa va a bordo
+        }
+        for (UUID id : ids) {
+            Personal p = buscarPersonal(id);
+            validarTripulante(p);
+            op.agregarTripulante(p);
         }
 
-        Set<UUID> ids = op.getTripulacion().stream().map(Personal::getId).collect(Collectors.toSet());
-        if (operaciones.existsByEstadoAndTripulacion_IdIn(EstadoOperacion.EN_CURSO, ids)) {
+        // Respaldo en BD por si la bandera de disponibilidad quedó desincronizada
+        Set<UUID> tripulantes = op.getTripulacion().stream().map(Personal::getId).collect(Collectors.toSet());
+        if (operaciones.existsByEstadoAndTripulacion_IdIn(EstadoOperacion.EN_CURSO, tripulantes)) {
             throw new BusinessException("Uno o más tripulantes ya están en otra operación en curso");
         }
-        if (op.getTripulacion().stream().anyMatch(p -> !p.isContratoActivo())) {
-            throw new BusinessException("La tripulación incluye personal sin contrato activo");
+        if (op.cantidadDeOperadores() < 2) {
+            throw new BusinessException("Deben haber 2 operadores de embarcación para iniciar la operación");
         }
-        if (op.cantidadDeOperadores(op.getTripulacion()) < 2) {
-            throw new BusinessException("Deben haber 2 conductores para iniciar la operación.");
-        }
-        if (!op.contieneGuia(op.getTripulacion())) {
+        if (!op.contieneGuia()) {
             throw new BusinessException("La tripulación debe incluir un guía de turismo (§7.1.4)");
         }
 
         op.getTripulacion().forEach(p -> p.setDisponibilidad(false));
-
         return mapper.toResponse(operaciones.save(op));
     }
 
@@ -128,7 +122,7 @@ public class OperacionServicio {
         Operacion op = buscarParaModificar(id, usuarioId);
         op.actualizarBitacora(r.condicionClimatica(), r.nivelRio(), r.novedades(), r.observaciones());
         if (r.condicionesMecanicas() != null) {
-            op.registrarCondicionesMecanicas(r.condicionesMecanicas(), r.detalleCondicionesMecanicas());
+            op.registrarCondicionesMecanicas(NovedadMecanicaDTO.toDominio(r.condicionesMecanicas()));
         }
         return mapper.toResponse(op);
     }
@@ -136,20 +130,26 @@ public class OperacionServicio {
     @Transactional
     public OperacionResponse agregarTripulante(UUID id, UUID personalId, UUID usuarioId) {
         Operacion op = buscarParaModificar(id, usuarioId);
-        op.agregarTripulante(buscarPersonal(personalId));
+        Personal p = buscarPersonal(personalId);
+        validarTripulante(p);
+        op.agregarTripulante(p);
+        p.setDisponibilidad(false);
         return mapper.toResponse(op);
     }
 
     @Transactional
     public OperacionResponse eliminarTripulante(UUID id, UUID personalId, UUID usuarioId) {
         Operacion op = buscarParaModificar(id, usuarioId);
-        op.eliminarTripulante(buscarPersonal(personalId));
+        Personal p = buscarPersonal(personalId);
+        op.eliminarTripulante(p);
+        p.devolverDisponibilidad();
         return mapper.toResponse(op);
     }
+
     @Transactional
     public OperacionResponse registrarParada(UUID id, ParadaRequest r, UUID usuarioId) {
         Operacion op = buscarParaModificar(id, usuarioId);
-
+        horario.exigirDentroDeJornada(op.getFechaHoraInicio(), r.horaSalida(), "salida de la parada");
         op.registrarParada(r.embarcadero(), r.horaLlegada(), r.horaSalida());
         return mapper.toResponse(op);
     }
@@ -157,18 +157,20 @@ public class OperacionServicio {
     @Transactional
     public OperacionResponse finalizar(UUID id, FinalizarOperacionRequest r, UUID usuarioId) {
         Operacion op = buscarParaModificar(id, usuarioId);
-        Personal p = buscarPersonal(usuarioId);
-        p.devolverDisponibilidad();
-        op.finalizar(ahoraSiNulo(r.fechaHoraFin()), r.horometroFinal());
+        Instant fin = ahoraSiNulo(r.fechaHoraFin());
+        horario.exigirDentroDeJornada(op.getFechaHoraInicio(), fin, "llegada");
+        op.finalizar(fin, r.horometroFinal());
+        liberarTripulacion(op);
         return mapper.toResponse(op);
     }
 
     @Transactional
     public OperacionResponse suspender(UUID id, SuspenderOperacionRequest r, UUID usuarioId) {
         Operacion op = buscarParaModificar(id, usuarioId);
-        Personal p = buscarPersonal(usuarioId);
-        p.devolverDisponibilidad();
-        op.suspender(ahoraSiNulo(r.momento()), r.motivo());
+        Instant momento = ahoraSiNulo(r.momento());
+        horario.exigirDentroDeJornada(op.getFechaHoraInicio(), momento, "suspensión");
+        op.suspender(momento, r.motivo());
+        liberarTripulacion(op);
         return mapper.toResponse(op);
     }
 
@@ -194,6 +196,20 @@ public class OperacionServicio {
         return op;
     }
 
+    /** Toda la tripulación queda disponible, no solo quien cierra (el supervisor no va a bordo). */
+    private static void liberarTripulacion(Operacion op) {
+        op.getTripulacion().forEach(Personal::devolverDisponibilidad);
+    }
+
+    private static void validarTripulante(Personal p) {
+        if (!p.isContratoActivo()) {
+            throw new BusinessException("El tripulante " + p.nombreCompleto() + " no tiene contrato activo");
+        }
+        if (!p.isDisponibilidad()) {
+            throw new BusinessException("El tripulante " + p.nombreCompleto() + " se encuentra en otra operación");
+        }
+    }
+
     private static void exigirRol(Personal p, Rol... permitidos) {
         for (Rol r : permitidos) {
             if (p.getRol() == r) {
@@ -205,15 +221,5 @@ public class OperacionServicio {
 
     private static Instant ahoraSiNulo(Instant valor) {
         return valor != null ? valor : Instant.now();
-    }
-
-    private void validarTripulante(Personal p) {
-        String nombre = p.getNombres() + " " + p.getApellidos();
-        if (!p.isContratoActivo()) {
-            throw new BusinessException("El tripulante " + nombre + " no tiene contrato activo");
-        }
-        if (!p.isDisponibilidad()) {
-            throw new BusinessException("El tripulante " + nombre + " se encuentra en otra operación");
-        }
     }
 }

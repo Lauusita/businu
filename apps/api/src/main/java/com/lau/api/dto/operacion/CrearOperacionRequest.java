@@ -1,10 +1,15 @@
 package com.lau.api.dto.operacion;
 
-import com.lau.api.dominio.enums.operacion.*;
+import com.lau.api.dominio.enums.operacion.CondicionClimatica;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.EstadoNave;
+import com.lau.api.dominio.enums.operacion.NivelRio;
+import com.lau.api.dto.comun.NovedadMecanicaDTO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,9 +23,7 @@ public record CrearOperacionRequest(
         @NotNull @Valid VerificacionPreviaDTO verificacion,
         @Size(max = 1000) String justificacionVerificacion,
         @NotNull CondicionClimatica condicionClimatica,
-        @NotNull Set<CondicionesMecanicas> condicionesMecanicas,
-        String detalleCondicionesMecanicas,
+        List<@Valid NovedadMecanicaDTO> condicionesMecanicas,     // vacía o ausente = sin novedad
         @NotNull NivelRio nivelRio,
-        @NotEmpty Set<UUID> tripulacionIds)
-{
+        @NotEmpty Set<UUID> tripulacionIds) {
 }

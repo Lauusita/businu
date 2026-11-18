@@ -1,13 +1,12 @@
 package com.lau.api.mappers;
 
-import com.lau.api.dominio.Embarcacion;
 import com.lau.api.dominio.Mantenimiento;
 import com.lau.api.dominio.Motor;
-import com.lau.api.dominio.NovedadMantenimiento;
+import com.lau.api.dominio.NovedadMecanica;
 import com.lau.api.dominio.RecomendacionMantenimiento;
 import com.lau.api.dominio.RepuestoUtilizado;
 import com.lau.api.dto.combustible.AbastecimientoResponse.SoporteDTO;
-import com.lau.api.dto.embarcacion.EmbarcacionResponse;
+import com.lau.api.dto.comun.NovedadMecanicaDTO;
 import com.lau.api.dto.mantenimiento.CrearMantenimientoRequest;
 import com.lau.api.dto.mantenimiento.MantenimientoResponse;
 import java.util.List;
@@ -24,10 +23,8 @@ public class MantenimientoMapper {
                 .toList();
     }
 
-    public List<NovedadMantenimiento> toNovedades(List<CrearMantenimientoRequest.Novedad> lista) {
-        return lista == null ? List.of() : lista.stream()
-                .map(n -> new NovedadMantenimiento(n.condicion(), n.severidad(), n.detalle()))
-                .toList();
+    public List<NovedadMecanica> toNovedades(List<NovedadMecanicaDTO> lista) {
+        return NovedadMecanicaDTO.toDominio(lista);
     }
 
     public List<RecomendacionMantenimiento> toRecomendaciones(List<CrearMantenimientoRequest.Recomendacion> lista) {
@@ -59,9 +56,7 @@ public class MantenimientoMapper {
                                 r.getUnidad(), r.getCosto()))
                         .toList(),
                 m.isSinNovedades(),
-                m.getNovedades().stream()
-                        .map(n -> new MantenimientoResponse.Novedad(n.getCondicion(), n.getSeveridad(), n.getDetalle()))
-                        .toList(),
+                NovedadMecanicaDTO.desde(m.getNovedades()),
                 m.getRecomendaciones().stream()
                         .map(r -> new MantenimientoResponse.Recomendacion(r.getTipo(), r.getDescripcion()))
                         .toList(),
@@ -72,15 +67,6 @@ public class MantenimientoMapper {
                 m.costoTotal(),
                 m.getSoportes().stream()
                         .map(a -> new SoporteDTO(a.getId(), a.getNombreOriginal(), a.getTamanoBytes(), a.getSha256()))
-                        .toList());
-    }
-
-    public EmbarcacionResponse toEmbarcacion(Embarcacion e) {
-        return new EmbarcacionResponse(e.getId(), e.getNombre(), e.getPatente(), e.getCapacidadPasajeros(),
-                e.getEstado(),
-                e.getMotores().stream()
-                        .map(m -> new EmbarcacionResponse.MotorDTO(m.getId(), m.getMarca(), m.getModelo(),
-                                m.getSerial(), m.getPotenciaHp()))
                         .toList());
     }
 }

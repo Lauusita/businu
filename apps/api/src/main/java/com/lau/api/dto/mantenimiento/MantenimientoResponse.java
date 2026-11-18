@@ -6,6 +6,8 @@ import com.lau.api.dominio.enums.operacion.Embarcaciones;
 import com.lau.api.dominio.enums.mantenimiento.*;
 import com.lau.api.dominio.enums.seguimiento.Severidad;
 import com.lau.api.dto.combustible.AbastecimientoResponse.SoporteDTO;
+import com.lau.api.dto.comun.NovedadMecanicaDTO;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -27,7 +29,7 @@ public record MantenimientoResponse(
         boolean sinRepuestos,
         List<Repuesto> repuestos,
         boolean sinNovedades,
-        List<Novedad> novedades,
+        List<NovedadMecanicaDTO> novedades,
         List<Recomendacion> recomendaciones,
         Instant proximaIntervencion,           // solo si se estimó una fecha
         String condicionProximaIntervencion,
@@ -40,8 +42,6 @@ public record MantenimientoResponse(
 
     public record Repuesto(RepuestoInsumo item, String descripcion, BigDecimal cantidad, String unidad,
                            BigDecimal costo) { }
-
-    public record Novedad(CondicionesMecanicas condicion, Severidad severidad, String detalle) { }
 
     public record Recomendacion(TipoRecomendacion tipo, String descripcion) { }
 }
