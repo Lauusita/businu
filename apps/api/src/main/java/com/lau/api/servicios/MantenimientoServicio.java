@@ -9,6 +9,7 @@ import com.lau.api.dominio.enums.personal.Rol;
 import com.lau.api.dto.mantenimiento.CrearMantenimientoRequest;
 import com.lau.api.dto.mantenimiento.MantenimientoResponse;
 import com.lau.api.exceptions.BusinessException;
+import com.lau.api.exceptions.ForbiddenException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.mappers.MantenimientoMapper;
 import com.lau.api.repositorio.MantenimientoRepositorio;
@@ -47,7 +48,7 @@ public class MantenimientoServicio {
     public MantenimientoResponse registrar(CrearMantenimientoRequest r, UUID usuarioId) {
         Personal registrador = buscarPersonal(usuarioId);
         if (registrador.getRol() != Rol.OPERADOR_EMBARCACION && registrador.getRol() != Rol.SUPERVISOR) {
-            throw new BusinessException("Solo operadores de embarcación y supervisores registran mantenimientos");
+            throw new ForbiddenException("Solo operadores de embarcación y supervisores registran mantenimientos");
         }
 
         Embarcacion embarcacion = embarcaciones.buscar(r.embarcacionId());

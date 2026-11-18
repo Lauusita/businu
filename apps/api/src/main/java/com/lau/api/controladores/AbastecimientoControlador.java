@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@PreAuthorize("hasAnyRole=('SUPERVISOR','OPERADOR_EMBARCACION')")
+@PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
 @RequestMapping("/abastecimiento")
 public class AbastecimientoControlador {
     private final AbastecimientoServicio abastecimientoServicio;
@@ -45,6 +45,12 @@ public class AbastecimientoControlador {
             @RequestParam UUID embarcacionId,
             @PageableDefault(size = 20, sort = "fechaHora", direction = Sort.Direction.DESC) Pageable pageable) {
         return new PagedModel<>(abastecimientoServicio.listarPorEmbarcacion(embarcacionId, pageable));
+    }
+
+    /** Consumo entre tanques llenos (R37). */
+    @GetMapping("/consumo")
+    public java.util.List<com.lau.api.dto.combustible.ConsumoPeriodoResponse> consumo(@RequestParam UUID embarcacionId) {
+        return abastecimientoServicio.consumo(embarcacionId);
     }
 
     @GetMapping("/{id}/soporte")

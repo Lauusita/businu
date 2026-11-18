@@ -25,5 +25,6 @@ public record CrearOperacionRequest(
         @NotNull CondicionClimatica condicionClimatica,
         List<@Valid NovedadMecanicaDTO> condicionesMecanicas,     // vacía o ausente = sin novedad
         @NotNull NivelRio nivelRio,
-        @NotEmpty Set<UUID> tripulacionIds) {
+        @NotEmpty Set<UUID> tripulacionIds,
+        List<@Valid LecturaHorometroRequest> lecturasHorometro) {   // opcional: horómetro de cada motor al zarpar
 }

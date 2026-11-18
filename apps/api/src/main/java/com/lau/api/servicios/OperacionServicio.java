@@ -2,6 +2,7 @@ package com.lau.api.servicios;
 
 import com.lau.api.config.HorarioOperacion;
 import com.lau.api.dominio.Embarcacion;
+import com.lau.api.dominio.MotivoSuspension;
 import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.enums.operacion.Embarcaderos;
@@ -11,14 +12,19 @@ import com.lau.api.dto.comun.NovedadMecanicaDTO;
 import com.lau.api.dto.operacion.*;
 import com.lau.api.especificaciones.OperacionSpecs;
 import com.lau.api.exceptions.BusinessException;
+import com.lau.api.exceptions.ForbiddenException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.mappers.OperacionMapper;
+import com.lau.api.repositorio.AbastecimientoRepositorio;
 import com.lau.api.repositorio.EmbarcacionRepositorio;
 import com.lau.api.repositorio.OperacionRepositorio;
 import com.lau.api.repositorio.PersonalRepositorio;
 import java.time.Instant;
+import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -36,9 +42,14 @@ public class OperacionServicio {
     private final PersonalRepositorio personal;
     private final OperacionMapper mapper;
     private final HorarioOperacion horario;
+    private final SuspensionServicio suspensiones;
+    private final AbastecimientoRepositorio abastecimientos;
 
     public OperacionServicio(OperacionRepositorio operaciones, EmbarcacionRepositorio embarcaciones,
-                             PersonalRepositorio personal, OperacionMapper mapper, HorarioOperacion horario) {
+                             PersonalRepositorio personal, OperacionMapper mapper, HorarioOperacion horario,
+                             SuspensionServicio suspensiones, AbastecimientoRepositorio abastecimientos) {
+        this.suspensiones = suspensiones;
+        this.abastecimientos = abastecimientos;
         this.operaciones = operaciones;
         this.embarcaciones = embarcaciones;
         this.personal = personal;
@@ -81,6 +92,8 @@ public class OperacionServicio {
                     + " ya tiene una operación en curso: finalícela o suspéndala antes de abrir otra");
         }
 
+        suspensiones.exigirSinSuspensionVigente(embarcacion.getId());     // R48
+
         Instant inicio = ahoraSiNulo(r.fechaHoraInicio());
         horario.exigirZarpePermitido(inicio);
 
@@ -110,6 +123,17 @@ public class OperacionServicio {
         if (!op.contieneGuia()) {
             throw new BusinessException("La tripulación debe incluir un guía de turismo (§7.1.4)");
         }
+
+        op.registrarHorometrosIniciales(lecturas(r.lecturasHorometro()));   // R37
+
+        // R16: los cargues de combustible hechos desde el viaje anterior quedan en esta bitácora
+        Instant desde = operaciones
+                .findFirstByEmbarcacionIdAndFechaHoraFinLessThanEqualOrderByFechaHoraFinDesc(embarcacion.getId(), inicio)
+                .map(Operacion::getFechaHoraFin)
+                .orElse(Instant.EPOCH);
+        op.registrarCargues(abastecimientos
+                .findByEmbarcacionIdAndOperacionIsNullAndFechaHoraGreaterThanAndFechaHoraLessThanEqualOrderByFechaHora(
+                        embarcacion.getId(), desde, inicio));
 
         op.getTripulacion().forEach(p -> p.setDisponibilidad(false));
         return mapper.toResponse(operaciones.save(op));
@@ -159,6 +183,7 @@ public class OperacionServicio {
         Operacion op = buscarParaModificar(id, usuarioId);
         Instant fin = ahoraSiNulo(r.fechaHoraFin());
         horario.exigirDentroDeJornada(op.getFechaHoraInicio(), fin, "llegada");
+        op.registrarHorometrosFinales(lecturas(r.lecturasHorometro()));     // R37
         op.finalizar(fin, r.horometroFinal());
         liberarTripulacion(op);
         return mapper.toResponse(op);
@@ -169,7 +194,11 @@ public class OperacionServicio {
         Operacion op = buscarParaModificar(id, usuarioId);
         Instant momento = ahoraSiNulo(r.momento());
         horario.exigirDentroDeJornada(op.getFechaHoraInicio(), momento, "suspensión");
-        op.suspender(momento, r.motivo());
+        MotivoSuspension motivo = new MotivoSuspension(r.causa(), r.detalleEfectivo(), r.autoridad());
+        op.registrarHorometrosFinales(lecturas(r.lecturasHorometro()));     // R37
+        op.suspender(momento, motivo);
+        // R48: la embarcación queda suspendida (historial) hasta que se levante la suspensión
+        suspensiones.registrarPorOperacion(op, motivo, momento, buscarPersonal(usuarioId));
         liberarTripulacion(op);
         return mapper.toResponse(op);
     }
@@ -191,7 +220,7 @@ public class OperacionServicio {
         boolean autorizado = usuario.getRol() == Rol.SUPERVISOR
                 || (usuario.getRol() == Rol.OPERADOR_EMBARCACION && op.esTripulante(usuario));
         if (!autorizado) {
-            throw new BusinessException("Solo el supervisor o un operador de la tripulación puede modificar esta operación");
+            throw new ForbiddenException("Solo el supervisor o un operador de la tripulación puede modificar esta operación");
         }
         return op;
     }
@@ -216,7 +245,20 @@ public class OperacionServicio {
                 return;
             }
         }
-        throw new BusinessException("El rol " + p.getRol() + " no puede realizar esta acción");
+        throw new ForbiddenException("El rol " + p.getRol() + " no puede realizar esta acción");
+    }
+
+    /** Lista del request → mapa motorId → lectura (rechaza un motor repetido). */
+    private static Map<java.util.UUID, BigDecimal> lecturas(List<LecturaHorometroRequest> lista) {
+        Map<java.util.UUID, BigDecimal> mapa = new LinkedHashMap<>();
+        if (lista != null) {
+            for (LecturaHorometroRequest l : lista) {
+                if (mapa.put(l.motorId(), l.lectura()) != null) {
+                    throw new BusinessException("El motor " + l.motorId() + " está repetido en las lecturas del horómetro");
+                }
+            }
+        }
+        return mapa;
     }
 
     private static Instant ahoraSiNulo(Instant valor) {

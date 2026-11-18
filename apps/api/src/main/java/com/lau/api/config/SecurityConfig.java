@@ -21,7 +21,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableMethodSecurity   // habilita @PreAuthorize("hasRole('SUPERVISOR')") si lo quieres usar
 public class SecurityConfig {
-    public static final String RUTA_AUTENTICACION = "/autenticacion";
+    /** Única ruta pública. /auth/me y el resto de /auth exigen token. */
+    public static final String RUTA_LOGIN = "/auth/login";
 
     @Bean
     public JWTAuthorizationFilter jwtAuthorizationFilter(TokenUtils tokenUtils) {
@@ -46,7 +47,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/error").permitAll()
+                        .requestMatchers(RUTA_LOGIN, "/error").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

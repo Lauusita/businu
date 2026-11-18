@@ -14,7 +14,6 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import com.lau.api.exceptions.BusinessException;
-import com.lau.api.exceptions.NotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -58,16 +57,23 @@ public class UsuarioMapper {
             );
         }
 
-        boolean embarcaderoValido = o.getParadas().stream()
-                .anyMatch(parada ->
-                        parada.getEmbarcadero().equals(r.embarcaderoAbordaje())
-                );
-
-        if (!embarcaderoValido) {
-            throw new NotFoundException(
-                    "El embarcadero no pertenece a la operación"
-            );
+        // N-6: se puede abordar en cualquier embarcadero del recorrido (menos el destino), aunque el
+        // operador todavía no haya registrado la parada. La regla la valida el constructor de Usuario.
+        if (!o.admiteAbordajeEn(r.embarcaderoAbordaje())) {
+            throw new BusinessException("No se puede abordar en " + r.embarcaderoAbordaje().getDescripcion()
+                    + " en esta operación");
         }
+
+        // N-23: si la parada ya está registrada, el abordaje no puede ser anterior a la llegada a ella
+        o.getParadas().stream()
+                .filter(parada -> parada.getEmbarcadero() == r.embarcaderoAbordaje() && parada.getHoraLlegada() != null)
+                .findFirst()
+                .ifPresent(parada -> {
+                    if (fecha.isBefore(parada.getHoraLlegada())) {
+                        throw new BusinessException("La fecha del abordaje no puede ser anterior a la llegada a "
+                                + r.embarcaderoAbordaje().getDescripcion());
+                    }
+                });
 
         Usuario u = new Usuario(
                 fecha,

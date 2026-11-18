@@ -9,6 +9,7 @@ import com.lau.api.dto.usuario.UsuarioRequest;
 import com.lau.api.dto.usuario.UsuarioResponse;
 import com.lau.api.especificaciones.UsuarioSpecs;
 import com.lau.api.exceptions.BusinessException;
+import com.lau.api.exceptions.ForbiddenException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.mappers.UsuarioMapper;
 import com.lau.api.repositorio.OperacionRepositorio;
@@ -47,12 +48,13 @@ public class UsuarioServicio {
         Personal registrador = personalRepositorio.findById(personalId)
                 .orElseThrow(() -> new NotFoundException("Personal no encontrado"));
         if (registrador.getRol() != Rol.TAQUILLERO && registrador.getRol() != Rol.SUPERVISOR) {
-            throw new BusinessException("Solo taquilleros y supervisores registran usuarios transportados");
+            throw new ForbiddenException("Solo taquilleros y supervisores registran usuarios transportados");
         }
 
 
         // La embarcación sale de la operación: no se pide en el request
         Usuario usuario = usuarioMapper.requestToUsuario(request, operacion, registrador);
+        operacion.validarCapacidad(usuario);        // R16: ocupación acumulada por tramo
         usuarioRepositorio.save(usuario);
 
         return usuarioMapper.toResponse(usuario);   // dentro de la transacción: LAZY disponible

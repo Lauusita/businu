@@ -21,7 +21,8 @@ public record AbastecimientoResponse(
         BigDecimal precioPorGalon,
         boolean tanqueLleno,
         SoporteDTO soporte,
-        String observaciones) {
+        String observaciones,
+        UUID operacionId) {          // viaje en cuya bitácora quedó el cargue; se omite hasta el siguiente zarpe
 
     public record SoporteDTO(
             UUID id,

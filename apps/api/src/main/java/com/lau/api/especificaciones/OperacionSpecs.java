@@ -44,10 +44,10 @@ public final class OperacionSpecs {
     }
 
     public static Specification<Operacion> origen(Embarcaderos origen) {
-        return (root, q, cb) -> origen == null ? null : cb.equal(root.get("origen"), origen);
+        return (root, q, cb) -> origen == null ? null : cb.equal(root.get("embarcaderoOrigen"), origen);
     }
 
     public static Specification<Operacion> destino(Embarcaderos destino) {
-        return (root, q, cb) -> destino == null ? null : cb.equal(root.get("destino"), destino);
+        return (root, q, cb) -> destino == null ? null : cb.equal(root.get("embarcaderoDestino"), destino);
     }
 }

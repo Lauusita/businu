@@ -54,7 +54,18 @@ public class OperacionMapper {
                 o.getHorometroFinal(),
                 o.totalUsuariosTransportados(),
                 o.getRegistradoPor().nombreCompleto(),
-                o.isCargueCombustible());
+                o.isCargueCombustible(),
+                o.getMotivo() == null ? null : new OperacionResponse.SuspensionDTO(o.getMotivo().getCausa(),
+                        o.getMotivo().getCausa().getDescripcion(), o.getMotivo().getDetalle(), o.getMotivo().getAutoridad()),
+                o.getLecturasHorometro().stream()
+                        .map(l -> new OperacionResponse.HorometroDTO(l.getMotor().getId(), l.getMotor().getSerial(),
+                                l.getLecturaInicial(), l.getLecturaFinal(), l.horas()))
+                        .toList(),
+                o.horasMotor(),
+                o.horasNavegacion(),
+                o.getAbastecimientos().stream()
+                        .map(a -> new OperacionResponse.CargueDTO(a.getId(), a.getFechaHora(), a.getGalones(), a.isTanqueLleno()))
+                        .toList());
     }
 
     public OperacionResumen toResumen(Operacion o) {

@@ -125,8 +125,9 @@ public class Mantenimiento extends BaseEntity {
         if (responsable.getRol() != Rol.OPERADOR_EMBARCACION) {
             throw new BusinessException("El responsable del mantenimiento debe ser un operador de embarcación");
         }
-        if (!responsable.isDisponibilidad()) {
-            throw new BusinessException("El responsable del mantenimiento no se encuentra activo");
+        // Contrato, no disponibilidad: un operador puede estar navegando en la otra embarcación
+        if (!responsable.isContratoActivo()) {
+            throw new BusinessException("El responsable del mantenimiento no tiene contrato activo");
         }
         if (costoManoObra != null && costoManoObra.signum() < 0) {
             throw new BusinessException("El costo de mano de obra no puede ser negativo");

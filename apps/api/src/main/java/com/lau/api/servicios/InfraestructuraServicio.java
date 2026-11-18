@@ -12,6 +12,7 @@ import com.lau.api.dto.infraestructura.RegistroInfraestructuraResponse.*;
 import com.lau.api.dominio.enums.seguimiento.TipoRegistroInfraestructura;
 import com.lau.api.dto.infraestructura.*;
 import com.lau.api.exceptions.BusinessException;
+import com.lau.api.exceptions.ForbiddenException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.repositorio.AyudaNavegacionRepositorio;
 import com.lau.api.repositorio.PersonalRepositorio;
@@ -168,7 +169,7 @@ public class InfraestructuraServicio {
 
     private static void exigirRol(Personal p, Rol rol) {
         if (p.getRol() != rol) {
-            throw new BusinessException("Solo el rol " + rol + " puede realizar esta acción");
+            throw new ForbiddenException("Solo el rol " + rol + " puede realizar esta acción");
         }
     }
 

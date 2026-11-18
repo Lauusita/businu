@@ -1,6 +1,7 @@
 package com.lau.api.config;
 
 import com.lau.api.dominio.Embarcacion;
+import com.lau.api.dominio.MotivoSuspension;
 import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.Usuario;
@@ -42,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class Bootstrap implements ApplicationRunner {
 
     private static final ZoneId COLOMBIA = ZoneId.of("America/Bogota");
-    private static final LocalDate INICIO = LocalDate.of(2026, 12, 1);
 
     private final EmbarcacionRepositorio embarcaciones;
     private final PersonalRepositorio personal;
@@ -117,7 +117,7 @@ public class Bootstrap implements ApplicationRunner {
             Personal p = new Personal(TipoIdentificacion.CC, f[0], f[1], f[2], rol,
                     rol == Rol.GUIA_TURISTICA ? TipoVinculacion.PRESTACION_SERVICIOS : TipoVinculacion.LABORAL,
                     "personal" + i + "@businu.test",
-                    INICIO,
+                    LocalDate.now(COLOMBIA).minusMonths(1),   // vinculación en el pasado (N-7)
                     rol.usaSistema() ? clave : null);   // los guías no tienen contraseña
             lista.add(p);
         }
@@ -145,7 +145,8 @@ public class Bootstrap implements ApplicationRunner {
         // Un viaje suspendido por tormenta (§7.1.7), sin pasajeros
         Operacion suspendido = nuevaOperacion(yapel, false, ayer.atTime(14, 30), "1067900017", "1067900018", "1067900024");
         suspendido.actualizarBitacora(CondicionClimatica.TORMENTA_ELECTRICA, NivelRio.NORMAL, Operacion.SIN_NOVEDADES, Operacion.SIN_NOVEDADES);
-        suspendido.suspender(suspendido.getFechaHoraInicio().plusSeconds(600), "Tormenta eléctrica: suspensión preventiva");
+        suspendido.suspender(suspendido.getFechaHoraInicio().plusSeconds(600),
+                new MotivoSuspension(CausaSuspension.CONDICION_CLIMATICA, "Tormenta eléctrica: suspensión preventiva", null));
 
         List<Operacion> todas = new ArrayList<>(viajes);
         todas.add(suspendido);

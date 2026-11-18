@@ -58,6 +58,11 @@ public class AbastecimientoCombustible extends BaseEntity {
     @Column(nullable = false, columnDefinition = "text")
     private String observaciones = SIN_OBSERVACIONES;
 
+    /** Viaje en cuya bitácora queda este cargue (el siguiente zarpe de la embarcación). Null hasta entonces. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "operacion_id")
+    private Operacion operacion;
+
     public AbastecimientoCombustible(Instant fechaHora, Embarcacion embarcacion, TipoCombustible tipo,
                                      BigDecimal galones, BigDecimal valorTotal, boolean tanqueLleno,
                                      Adjunto soporte, String observaciones, Personal registradoPor) {
@@ -79,6 +84,16 @@ public class AbastecimientoCombustible extends BaseEntity {
         this.soporte = soporte;
         this.registradoPor = registradoPor;
         this.observaciones = (observaciones == null || observaciones.isBlank()) ? SIN_OBSERVACIONES : observaciones.trim();
+    }
+
+    void asociarA(Operacion op) {
+        if (operacion != null) {
+            throw new BusinessException("El abastecimiento ya está asociado a otra operación");
+        }
+        if (!op.getEmbarcacion().getId().equals(embarcacion.getId())) {
+            throw new BusinessException("El abastecimiento es de otra embarcación");
+        }
+        this.operacion = op;
     }
 
     /** Precio por galón calculado del recibo. */

@@ -3,9 +3,11 @@ package com.lau.api.exceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import software.amazon.awssdk.core.exception.SdkException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.exc.InvalidFormatException;
 import tools.jackson.databind.exc.MismatchedInputException;
@@ -83,6 +86,29 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ProblemDetail handleForbidden(AuthorizationDeniedException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "No tiene permisos para esta acción");
+    }
+
+    // Restricciones de la base (únicos, llaves foráneas): normalmente por dos registros simultáneos
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
+        log.warn("Violación de integridad: {}", ex.getMostSpecificCause().getMessage());
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "El registro entra en conflicto con información existente (dato duplicado o referencia inválida)");
+    }
+
+    // Bloqueo optimista (@Version): otro usuario modificó el registro al mismo tiempo
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "El registro fue modificado por otro usuario. Actualice la información e intente nuevamente.");
+    }
+
+    // Errores del SDK de AWS (S3)
+    @ExceptionHandler(SdkException.class)
+    public ProblemDetail handleAws(SdkException ex) {
+        log.error("Error con el servicio de almacenamiento", ex);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY,
+                "No fue posible completar la operación con el servicio de almacenamiento");
     }
 
     // Último recurso: respeta los status conocidos y nunca expone detalles internos

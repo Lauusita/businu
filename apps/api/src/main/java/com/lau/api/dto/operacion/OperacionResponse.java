@@ -35,8 +35,20 @@ public record OperacionResponse(
         BigDecimal horometroFinal,
         int totalUsuariosTransportados,
         String registradoPor,
-        boolean cargueCombustible
+        boolean cargueCombustible,
+        SuspensionDTO suspension,             // R48: solo si el viaje fue suspendido
+        List<HorometroDTO> horometros,        // R37: lectura de cada motor al zarpar y al terminar
+        BigDecimal horasMotor,                // se omite si falta alguna lectura final
+        BigDecimal horasNavegacion,           // se omite mientras el viaje está en curso
+        List<CargueDTO> cargues               // R16: abastecimientos anteriores al zarpe
 ) {
+
+    public record SuspensionDTO(CausaSuspension causa, String causaDescripcion, String detalle, String autoridad) { }
+
+    public record HorometroDTO(UUID motorId, String serial, BigDecimal lecturaInicial, BigDecimal lecturaFinal,
+                               BigDecimal horas) { }
+
+    public record CargueDTO(UUID abastecimientoId, Instant fechaHora, BigDecimal galones, boolean tanqueLleno) { }
 
     public record EmbarcacionResumen(UUID id, Embarcaciones nombre, String patente) { }
 

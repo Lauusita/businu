@@ -95,10 +95,29 @@ public class Operacion extends BaseEntity {
     @OrderColumn(name = "orden")
     private List<Parada> paradas = new ArrayList<>();
 
+    /** Texto del motivo (se conserva para compatibilidad); la causa tipificada está en motivo. */
     @Column(name = "motivo_suspension", columnDefinition = "text")
     private String motivoSuspension;
 
-    /** Horómetro al finalizar (alimenta el conteo de 100 h de los motores). */
+    /** Causa tipificada de la suspensión (R48). Null si el viaje no fue suspendido. */
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "causa", column = @Column(name = "causa_suspension", length = 40)),
+            @AttributeOverride(name = "detalle", column = @Column(name = "detalle_suspension", columnDefinition = "text")),
+            @AttributeOverride(name = "autoridad", column = @Column(name = "autoridad_suspension", length = 150))
+    })
+    private MotivoSuspension motivo;
+
+    /** Horómetro de cada motor al zarpar y al terminar (R37). */
+    @ElementCollection
+    @CollectionTable(name = "operacion_horometros", joinColumns = @JoinColumn(name = "operacion_id"))
+    private List<LecturaHorometro> lecturasHorometro = new ArrayList<>();
+
+    /** Abastecimientos hechos antes del zarpe y asociados a este viaje (§4.1, R16). */
+    @OneToMany(mappedBy = "operacion")
+    private List<AbastecimientoCombustible> abastecimientos = new ArrayList<>();
+
+    /** Campo heredado: una sola lectura sin indicar el motor. Las lecturas por motor están en lecturasHorometro. */
     @Column(name = "horometro_final", precision = 10, scale = 1)
     private BigDecimal horometroFinal;
 
@@ -186,23 +205,30 @@ public class Operacion extends BaseEntity {
     }
 
     public void agregarTripulante(Personal persona) {
+        exigirEnCurso();   // una operación cerrada no cambia de tripulación (si no, la persona queda sin disponibilidad)
         if (persona.getRol() != Rol.OPERADOR_EMBARCACION && persona.getRol() != Rol.GUIA_TURISTICA) {
             throw new BusinessException("La tripulación solo incluye operadores de embarcación y guías");
         }
         tripulacion.add(persona);
     }
 
+    /**
+     * Quita a un tripulante validando ANTES de modificar: la operación en curso conserva 2 operadores
+     * y al menos un guía. La disponibilidad de la persona la devuelve el servicio.
+     */
     public void eliminarTripulante(Personal persona) {
-        boolean eliminado = tripulacion.removeIf(t -> t.getId().equals(persona.getId()));
-        if (!eliminado) {
+        exigirEnCurso();
+        if (!esTripulante(persona)) {
             throw new BusinessException("La persona no hace parte de la tripulación");
         }
-        if (estado == EstadoOperacion.EN_CURSO
-                && tripulacion.stream().noneMatch(t -> t.getRol() == Rol.GUIA_TURISTICA)) {
-            tripulacion.add(persona);   // deshace el cambio
+        if (persona.getRol() == Rol.OPERADOR_EMBARCACION && cantidadDeOperadores() <= 2) {
+            throw new BusinessException("La operación en curso debe conservar 2 operadores de embarcación");
+        }
+        long guias = tripulacion.stream().filter(t -> t.getRol() == Rol.GUIA_TURISTICA).count();
+        if (persona.getRol() == Rol.GUIA_TURISTICA && guias <= 1) {
             throw new BusinessException("La operación en curso debe tener al menos un guía");
         }
-        persona.setDisponibilidad(true);
+        tripulacion.removeIf(t -> t.getId().equals(persona.getId()));
     }
 
     public boolean contieneGuia() {
@@ -238,18 +264,104 @@ public class Operacion extends BaseEntity {
         this.estado = EstadoOperacion.FINALIZADA;
     }
 
-    /** §7.1.7: suspensión por clima, nivel del río, autoridad, falla mecánica, etc. */
-    public void suspender(Instant momento, String motivo) {
+    /** §7.1.7: suspensión por clima, nivel del río, autoridad, falla mecánica, etc. (R48: causa tipificada). */
+    public void suspender(Instant momento, MotivoSuspension motivo) {
         exigirEnCurso();
-        if (motivo == null || motivo.isBlank()) {
+        if (motivo == null) {
             throw new BusinessException("Indique el motivo de la suspensión");
         }
         if (!momento.isAfter(fechaHoraInicio)) {
             throw new BusinessException("La suspensión debe ser posterior al zarpe");
         }
         this.fechaHoraFin = momento;
-        this.motivoSuspension = motivo;
+        this.motivo = motivo;
+        this.motivoSuspension = motivo.texto();
         this.estado = EstadoOperacion.SUSPENDIDA;
+    }
+
+    // ---- Horómetro (R37) ----
+
+    /**
+     * Lectura de cada motor al zarpar. Si el operador la envía, se usa (y actualiza el motor); si no,
+     * se toma la última lectura conocida del motor.
+     */
+    public void registrarHorometrosIniciales(Map<UUID, BigDecimal> lecturas) {
+        Map<UUID, BigDecimal> enviadas = lecturas == null ? Map.of() : lecturas;
+        exigirMotoresDeLaEmbarcacion(enviadas.keySet());
+        lecturasHorometro.clear();
+        for (Motor motor : embarcacion.getMotores()) {
+            BigDecimal inicial = enviadas.get(motor.getId());
+            if (inicial != null) {
+                motor.registrarLectura(inicial);          // no puede ser menor que la última conocida
+            }
+            lecturasHorometro.add(new LecturaHorometro(motor, motor.getHorometroActual()));
+        }
+    }
+
+    /** Lectura de cada motor al terminar el viaje; actualiza el horómetro del motor. */
+    public void registrarHorometrosFinales(Map<UUID, BigDecimal> lecturas) {
+        if (lecturas == null || lecturas.isEmpty()) {
+            return;
+        }
+        exigirEnCurso();
+        exigirMotoresDeLaEmbarcacion(lecturas.keySet());
+        for (LecturaHorometro l : lecturasHorometro) {
+            BigDecimal fin = lecturas.get(l.getMotor().getId());
+            if (fin != null) {
+                l.registrarFinal(fin);
+                l.getMotor().registrarLectura(fin);
+            }
+        }
+    }
+
+    /** Horas de motor del viaje (suma de los motores); null si falta alguna lectura final. */
+    public BigDecimal horasMotor() {
+        if (!horometroCompleto()) {
+            return null;
+        }
+        return lecturasHorometro.stream().map(LecturaHorometro::horas).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public boolean horometroCompleto() {
+        return !lecturasHorometro.isEmpty() && lecturasHorometro.stream().allMatch(l -> l.getLecturaFinal() != null);
+    }
+
+    /** Horas entre el zarpe y la llegada o suspensión; null si el viaje sigue en curso. */
+    public BigDecimal horasNavegacion() {
+        if (fechaHoraFin == null) {
+            return null;
+        }
+        long minutos = java.time.Duration.between(fechaHoraInicio, fechaHoraFin).toMinutes();
+        return BigDecimal.valueOf(minutos).divide(BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
+    }
+
+    public List<LecturaHorometro> getLecturasHorometro() {
+        return Collections.unmodifiableList(lecturasHorometro);
+    }
+
+    private void exigirMotoresDeLaEmbarcacion(Set<UUID> motorIds) {
+        Set<UUID> propios = new HashSet<>();
+        embarcacion.getMotores().forEach(m -> propios.add(m.getId()));
+        for (UUID id : motorIds) {
+            if (!propios.contains(id)) {
+                throw new BusinessException("El motor " + id + " no pertenece a " + embarcacion.getNombre());
+            }
+        }
+    }
+
+    // ---- Cargue de combustible (§4.1, R16) ----
+
+    /** Abastecimientos hechos antes de este zarpe: quedan en la bitácora del viaje. */
+    public void registrarCargues(List<AbastecimientoCombustible> cargues) {
+        cargues.forEach(a -> {
+            a.asociarA(this);
+            abastecimientos.add(a);
+        });
+        this.cargueCombustible = !abastecimientos.isEmpty();
+    }
+
+    public List<AbastecimientoCombustible> getAbastecimientos() {
+        return Collections.unmodifiableList(abastecimientos);
     }
 
     /** Lo llama el constructor de Usuario: mantiene la lista sincronizada en memoria. */
@@ -258,6 +370,60 @@ public class Operacion extends BaseEntity {
             throw new BusinessException("No se pueden registrar usuarios en una operación suspendida");
         }
         usuarios.add(usuario);
+    }
+
+    /**
+     * Capacidad acumulada (R16): en cada tramo del recorrido, los usuarios a bordo no pueden superar la
+     * capacidad de la embarcación. A bordo al zarpar de un embarcadero = abordados en ese embarcadero o
+     * antes, menos los que ya bajaron (su destino está en ese embarcadero o antes).
+     *
+     * @param nuevo registro que se está agregando (ya está en la lista de usuarios: no se cuenta dos veces)
+     */
+    public void validarCapacidad(Usuario nuevo) {
+        int capacidad = embarcacion.getCapacidadPasajeros();
+        List<Embarcaderos> ruta = recorrido();
+        for (int tramo = 0; tramo < ruta.size() - 1; tramo++) {
+            int existentes = 0;
+            int nuevos = 0;
+            for (Usuario u : usuarios) {
+                int aBordo = aBordoAlZarparDe(u, ruta, tramo);
+                if (u == nuevo) {
+                    nuevos += aBordo;
+                } else {
+                    existentes += aBordo;
+                }
+            }
+            if (existentes + nuevos > capacidad) {
+                Embarcaderos desde = ruta.get(tramo);
+                throw new BusinessException("Capacidad excedida al zarpar de " + desde.getDescripcion() + ": van "
+                        + existentes + " usuarios a bordo y la capacidad de " + embarcacion.getNombre() + " es "
+                        + capacidad + ". Pueden abordar como máximo " + Math.max(0, capacidad - existentes) + " más");
+            }
+        }
+    }
+
+    /** Embarcaderos del recorrido en el orden en que se navegan (origen → destino). */
+    public List<Embarcaderos> recorrido() {
+        Embarcaderos[] todos = Embarcaderos.values();
+        int paso = embarcaderoDestino.ordinal() > embarcaderoOrigen.ordinal() ? 1 : -1;
+        List<Embarcaderos> ruta = new ArrayList<>();
+        for (int i = embarcaderoOrigen.ordinal(); ; i += paso) {
+            ruta.add(todos[i]);
+            if (i == embarcaderoDestino.ordinal()) {
+                return ruta;
+            }
+        }
+    }
+
+    /** Cuántos usuarios de un registro siguen a bordo al zarpar del embarcadero ruta[tramo]. */
+    private static int aBordoAlZarparDe(Usuario u, List<Embarcaderos> ruta, int tramo) {
+        if (ruta.indexOf(u.getEmbarcaderoAbordaje()) > tramo) {
+            return 0;                                   // todavía no ha abordado
+        }
+        return u.getPorDestino().entrySet().stream()
+                .filter(d -> ruta.indexOf(d.getKey()) > tramo)   // su destino está más adelante
+                .mapToInt(Map.Entry::getValue)
+                .sum();
     }
 
     /** Cantidad de pasajeros transportados en el viaje (§4.1): suma de los registros de usuarios. */

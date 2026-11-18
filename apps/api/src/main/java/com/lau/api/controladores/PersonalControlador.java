@@ -62,6 +62,8 @@ public class PersonalControlador {
         personalServicio.desactivarCuenta(id, auth.id());
     }
 
+    /** El operador también la necesita para armar el zarpe (ids de la tripulación). */
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @GetMapping("/tripulacion-disponible")
     public List<PersonalResponse> tripulacionDisponible() {
         return personalServicio.tripulacionDisponible();
