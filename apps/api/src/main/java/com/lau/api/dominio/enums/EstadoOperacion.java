@@ -1,5 +1,17 @@
 package com.lau.api.dominio.enums;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public enum EstadoOperacion {
-    EN_CURSO, FINALIZADA, SUSPENDIDA
+    EN_CURSO("En curso"),
+    FINALIZADA("Finalizada"),
+    SUSPENDIDA("Suspendida");
+
+
+    @Getter
+    private final String descripcion;
+    EstadoOperacion(String descripcion) {
+        this.descripcion = descripcion;
+    }
 }

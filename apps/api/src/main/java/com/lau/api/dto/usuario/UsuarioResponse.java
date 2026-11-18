@@ -29,7 +29,7 @@ public record UsuarioResponse(
     /** codigo = valor del enum (para enviar de vuelta); nombre = texto para mostrar. */
     public record EmbarcaderoResumen(Embarcaderos codigo, String nombre) {
         public static EmbarcaderoResumen de(Embarcaderos e) {
-            return new EmbarcaderoResumen(e, e.name().replace("_", " "));
+            return new EmbarcaderoResumen(e, e.getDescripcion().replace("_", " "));
         }
     }
 }

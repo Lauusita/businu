@@ -37,9 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class Bootstrap implements ApplicationRunner {
 
     private static final ZoneId COLOMBIA = ZoneId.of("America/Bogota");
-    private static final Instant INICIO = LocalDate.of(2026, 12, 1)
-            .atStartOfDay(ZoneId.of("America/Bogota"))
-            .toInstant();
+    private static final LocalDate INICIO = LocalDate.of(2026, 12, 1);
 
     private final EmbarcacionRepositorio embarcaciones;
     private final PersonalRepositorio personal;

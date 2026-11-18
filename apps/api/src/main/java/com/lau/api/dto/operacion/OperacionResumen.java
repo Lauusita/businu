@@ -10,8 +10,8 @@ import java.util.UUID;
 public record OperacionResumen(
         UUID id,
         Embarcaciones embarcacion,
-        Embarcaderos embarcaderoOrigen,
-        Embarcaderos embarcaderoDestino,
+        String embarcaderoOrigen,
+        String embarcaderoDestino,
         Instant fechaHoraInicio,
         Instant fechaHoraFin,
         EstadoOperacion estado,

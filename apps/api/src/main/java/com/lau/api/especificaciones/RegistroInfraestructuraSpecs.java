@@ -1,4 +1,4 @@
-package com.lau.api.repositorio;
+package com.lau.api.especificaciones;
 
 import com.lau.api.dominio.RegistroInfraestructura;
 import com.lau.api.dominio.enums.Embarcaderos;

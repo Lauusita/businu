@@ -5,6 +5,7 @@ import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.Usuario;
 import com.lau.api.dominio.enums.Embarcaderos;
 import com.lau.api.dominio.enums.Rol;
+import com.lau.api.dto.usuario.UsuarioFilter;
 import com.lau.api.dto.usuario.UsuarioRequest;
 import com.lau.api.dto.usuario.UsuarioResponse;
 import com.lau.api.especificaciones.UsuarioSpecs;
@@ -68,14 +69,10 @@ public class UsuarioServicio {
                 .orElseThrow(() -> new NotFoundException("Registro de usuarios no encontrado"));
     }
 
+    // UsuarioServicio
     @Transactional(readOnly = true)
-    public Page<UsuarioResponse> obtenerTodos(UUID embarcacionId, Embarcaderos embarcadero,
-                                              Instant desde, Instant hasta, Pageable pageable) {
-        Specification<Usuario> spec = Specification.allOf(
-                UsuarioSpecs.embarcacion(embarcacionId),
-                UsuarioSpecs.embarcadero(embarcadero),
-                UsuarioSpecs.entre(desde, hasta));
-        return usuarioRepositorio.findAll(spec, pageable).map(usuarioMapper::toResponse);
+    public Page<UsuarioResponse> buscar(UsuarioFilter filtro, Pageable pageable) {
+        return usuarioRepositorio.findAll(UsuarioSpecs.de(filtro), pageable).map(usuarioMapper::toResponse);
     }
 
     public List<UsuarioResponse> obtenerPorOperacion(UUID operacionId) {

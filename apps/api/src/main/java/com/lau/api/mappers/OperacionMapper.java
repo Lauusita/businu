@@ -25,11 +25,10 @@ public class OperacionMapper {
         VerificacionPrevia v = o.getVerificacion();
         return new OperacionResponse(
                 o.getId(),
-                o.getVersion(),
                 new EmbarcacionResumen(o.getEmbarcacion().getId(), o.getEmbarcacion().getNombre(),
                         o.getEmbarcacion().getPatente()),
-                o.getEmbarcaderoOrigen(),
-                o.getEmbarcaderoDestino(),
+                o.getEmbarcaderoOrigen().getDescripcion(),
+                o.getEmbarcaderoDestino().getDescripcion(),
                 o.getFechaHoraInicio(),
                 o.getFechaHoraFin(),
                 o.getEstado(),
@@ -57,8 +56,8 @@ public class OperacionMapper {
     }
 
     public OperacionResumen toResumen(Operacion o) {
-        return new OperacionResumen(o.getId(), o.getEmbarcacion().getNombre(), o.getEmbarcaderoOrigen(),
-                o.getEmbarcaderoDestino(), o.getFechaHoraInicio(), o.getFechaHoraFin(), o.getEstado(),
+        return new OperacionResumen(o.getId(), o.getEmbarcacion().getNombre(), o.getEmbarcaderoOrigen().getDescripcion(),
+                o.getEmbarcaderoDestino().getDescripcion(), o.getFechaHoraInicio(), o.getFechaHoraFin(), o.getEstado(),
                 o.totalUsuariosTransportados());
     }
 }

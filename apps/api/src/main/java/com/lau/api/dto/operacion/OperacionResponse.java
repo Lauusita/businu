@@ -12,10 +12,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record OperacionResponse(
         UUID id,
-        Long version,
         EmbarcacionResumen embarcacion,
-        Embarcaderos embarcaderoOrigen,
-        Embarcaderos embarcaderoDestino,
+        String embarcaderoOrigen,
+        String embarcaderoDestino,
         Instant fechaHoraInicio,
         Instant fechaHoraFin,
         EstadoOperacion estado,

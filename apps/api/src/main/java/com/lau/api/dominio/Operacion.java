@@ -216,11 +216,28 @@ public class Operacion extends BaseEntity {
         List<Personal> operadores = tripulacion.stream().filter(personal -> personal.getRol() == Rol.OPERADOR_EMBARCACION).toList();
         return operadores.size();
     }
+
+    public boolean contieneGuia(Set<Personal> tripulacion) {
+        return tripulacion.stream().anyMatch(personal -> personal.getRol() == Rol.GUIA_TURISTICA);
+    }
     public void agregarTripulante(Personal persona) {
         if (persona.getRol() != Rol.OPERADOR_EMBARCACION && persona.getRol() != Rol.GUIA_TURISTICA) {
             throw new BusinessException("La tripulación solo incluye operadores de embarcación y guías");
         }
         tripulacion.add(persona);
+    }
+
+    public void eliminarTripulante(Personal persona) {
+        boolean eliminado = tripulacion.removeIf(t -> t.getId().equals(persona.getId()));
+        if (!eliminado) {
+            throw new BusinessException("La persona no hace parte de la tripulación");
+        }
+        if (estado == EstadoOperacion.EN_CURSO
+                && tripulacion.stream().noneMatch(t -> t.getRol() == Rol.GUIA_TURISTICA)) {
+            tripulacion.add(persona);   // deshace el cambio
+            throw new BusinessException("La operación en curso debe tener al menos un guía");
+        }
+        persona.setDisponibilidad(true);
     }
 
     /** Parada intermedia (p. ej. Centro – Calle 22). */

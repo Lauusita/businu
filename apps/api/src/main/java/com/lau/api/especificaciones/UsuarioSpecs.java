@@ -1,33 +1,63 @@
 package com.lau.api.especificaciones;
 
 import com.lau.api.dominio.Usuario;
+import com.lau.api.dominio.enums.Embarcaciones;
 import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dto.usuario.UsuarioFilter;
+import jakarta.persistence.criteria.MapJoin;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.time.Instant;
-import java.util.UUID;
-
 public final class UsuarioSpecs {
+
+    private static final ZoneId COLOMBIA = ZoneId.of("America/Bogota");
 
     private UsuarioSpecs() {
     }
 
-    public static Specification<Usuario> embarcacion(UUID embarcacionId) {
-        return (r, q, cb)
-                -> embarcacionId == null ? null : cb.equal(r.get("embarcacion").get("id"), embarcacionId);
+    public static Specification<Usuario> de(UsuarioFilter f) {
+        return Specification.allOf(
+                embarcacion(f.embarcacion()),
+                puertoAbordaje(f.puertoAbordaje()),
+                puertoDestino(f.puertoDestino()),
+                cantidadEntre(f.cantidadMinima(), f.cantidadMaxima()),
+                dia(f.fecha()));
     }
 
-    public static Specification<Usuario> embarcadero(Embarcaderos e) {
-        return (r, q, cb)
-                -> e == null ? null : cb.equal(r.get("embarcaderoAbordaje"), e);
+    /** La embarcación está en la operación, no en el usuario. */
+    public static Specification<Usuario> embarcacion(Embarcaciones nombre) {
+        return (r, q, cb) -> nombre == null ? null
+                : cb.equal(r.get("operacion").get("embarcacion").get("nombre"), nombre);
     }
 
-    public static Specification<Usuario> entre(Instant desde, Instant hasta) {
+    public static Specification<Usuario> puertoAbordaje(Embarcaderos e) {
+        return (r, q, cb) -> e == null ? null : cb.equal(r.get("embarcaderoAbordaje"), e);
+    }
+
+    /** porDestino es un Map<Embarcaderos, Integer>: se filtra por la clave del mapa. */
+    public static Specification<Usuario> puertoDestino(Embarcaderos destino) {
         return (r, q, cb) -> {
-            if (desde == null && hasta == null) return null;
-            if (desde == null) return cb.lessThan(r.get("fechaHora"), hasta);
-            if (hasta == null) return cb.greaterThanOrEqualTo(r.get("fechaHora"), desde);
-            return cb.and(cb.greaterThanOrEqualTo(r.get("fechaHora"), desde), cb.lessThan(r.get("fechaHora"), hasta));
+            if (destino == null) return null;
+            MapJoin<Usuario, Embarcaderos, Integer> d = r.joinMap("porDestino");
+            q.distinct(true);                       // evita filas repetidas por el join
+            return cb.equal(d.key(), destino);
         };
+    }
+
+    public static Specification<Usuario> cantidadEntre(Integer min, Integer max) {
+        return (r, q, cb) -> {
+            if (min == null && max == null) return null;
+            if (max == null) return cb.greaterThanOrEqualTo(r.get("usuariosTransportados"), min);
+            if (min == null) return cb.lessThanOrEqualTo(r.get("usuariosTransportados"), max);
+            return cb.between(r.get("usuariosTransportados"), min, max);
+        };
+    }
+
+    /** Un día calendario en Colombia = [00:00, 00:00 del día siguiente). */
+    public static Specification<Usuario> dia(LocalDate fecha) {
+        return (r, q, cb) -> fecha == null ? null : cb.and(
+                cb.greaterThanOrEqualTo(r.get("fechaHora"), fecha.atStartOfDay(COLOMBIA).toInstant()),
+                cb.lessThan(r.get("fechaHora"), fecha.plusDays(1).atStartOfDay(COLOMBIA).toInstant()));
     }
 }

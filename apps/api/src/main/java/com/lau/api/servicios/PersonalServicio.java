@@ -1,7 +1,9 @@
 package com.lau.api.servicios;
 
 import com.lau.api.dominio.Personal;
+import com.lau.api.dominio.enums.Rol;
 import com.lau.api.dto.GeneralResponse;
+import com.lau.api.dto.personal.PersonalDTO;
 import com.lau.api.dto.personal.PersonalResponse;
 import com.lau.api.exceptions.BusinessException;
 import com.lau.api.exceptions.NotFoundException;
@@ -10,6 +12,7 @@ import com.lau.api.repositorio.PersonalRepositorio;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -31,12 +34,9 @@ public class PersonalServicio {
         this.personalMapper = personalMapper;
     }
 
-    public void save(Personal personal) {
-        personal.habilitarAcceso(personal.getPasswordHash());
-
-        String scriptedPassword = passwordEncoder.encode(personal.getPasswordHash());
-
-        personal.setPasswordHash(scriptedPassword);
+    @Transactional
+    public PersonalResponse crear(PersonalDTO personalDTO, String contrasena) {
+        Personal personal = personalMapper.requestToPersonal(personalDTO);
 
         if (personalRepositorio.existsByNumeroIdentificacion(personal.getNumeroIdentificacion())) {
             throw new BusinessException("Ya existe una persona con ese número de identificación");
@@ -44,8 +44,21 @@ public class PersonalServicio {
         if (personalRepositorio.existsByEmail(personal.getEmail())) {
             throw new BusinessException("Ya existe una persona con ese correo");
         }
+        if (personal.getRol().usaSistema()) {
+            personal.habilitarAcceso(passwordEncoder.encode(contrasena));
+        } else {
+            personal.revocarAcceso();
+        }
+        return personalMapper.toResponse(personalRepositorio.save(personal));
+    }
 
-        personalRepositorio.save(personal);
+    @Transactional
+    public void desactivarCuenta(UUID id, UUID quienDesactiva) {
+        if (id.equals(quienDesactiva)) {
+            throw new BusinessException("No puede desactivar su propia cuenta");
+        }
+        Personal p = personalRepositorio.findById(id).orElseThrow(() -> new NotFoundException("Cuenta no encontrada"));
+        p.desactivarPersonal();          // método de dominio: activo = false, fechaRetiro = hoy
     }
 
     public List<PersonalResponse> findAll() {
@@ -62,11 +75,9 @@ public class PersonalServicio {
         return personalMapper.toResponse(personal);
     }
 
-    public GeneralResponse desactivarCuenta(UUID id) {
-        Personal personal = personalRepositorio.findById(id).orElseThrow(() -> new NotFoundException("Cuenta no encontrada"));
-        personal.setActivo(false);
-        personal.setFechaRetiro(Instant.now());
-        return new GeneralResponse(HttpStatus.OK, "Cuenta desactivada exitosamente.");
-    }
 
+    public List<PersonalResponse> tripulacionDisponible() {
+        List<Personal> tripulacion = personalRepositorio.findByRolIn(List.of(Rol.GUIA_TURISTICA, Rol.OPERADOR_EMBARCACION));
+        return tripulacion.stream().map(personalMapper::toResponse).toList();
+    }
 }

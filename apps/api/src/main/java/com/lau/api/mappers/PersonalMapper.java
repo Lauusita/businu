@@ -17,20 +17,21 @@ public class PersonalMapper {
 
     public Personal requestToPersonal(PersonalDTO p) {
         return new Personal(
-                TipoIdentificacion.fromString(String.valueOf(p.tipoIdentificacion())),
+                p.tipoIdentificacion(),
                 p.numeroIdentificacion(),
                 p.nombres(),
                 p.apellidos(),
-                Rol.fromString(p.rol().toString()),
-                TipoVinculacion.fromString(String.valueOf(p.tipoVinculacion())),
+                p.rol(),
+                p.tipoVinculacion(),
                 p.email(),
-                Instant.now(),
+                LocalDate.now(),
                 p.password()
         );
     }
 
     public PersonalResponse toResponse(Personal p) {
         return new PersonalResponse(
+                p.getId(),
                 p.getTipoIdentificacion(),
                 p.getNumeroIdentificacion(),
                 p.getNombres(),

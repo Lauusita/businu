@@ -1,6 +1,7 @@
 package com.lau.api.controladores;
 
 import com.lau.api.dominio.Personal;
+import com.lau.api.dto.personal.PersonalAuth;
 import com.lau.api.dto.personal.PersonalDTO;
 import com.lau.api.dto.GeneralResponse;
 import com.lau.api.dto.personal.PersonalResponse;
@@ -10,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,23 +43,28 @@ public class PersonalControlador {
 
     @GetMapping("buscar-personal")
     public PersonalResponse obtenerPorNumeroIdentificacion(
-            @RequestParam("") String numeroIdentificacion
+            @RequestParam String numeroIdentificacion
     ) {
         return personalServicio.buscarPorIdentificacion(numeroIdentificacion);
     }
 
     @PostMapping
-    public GeneralResponse crear(
+    public PersonalResponse crear(
             @Valid() @RequestBody() PersonalDTO personalDTO) {
-        Personal personal = personalMapper.requestToPersonal(personalDTO);
-        personalServicio.save(personal);
-        return new GeneralResponse(HttpStatus.OK, "Operación exitosa");
+        return personalServicio.crear(personalDTO, personalDTO.password());
     }
 
     @PostMapping("desactivar-cuenta/{id}")
-    public GeneralResponse desactivarCuenta(
-            @PathVariable UUID id
-    ) {
-        return personalServicio.desactivarCuenta(id);
+    public void desactivarCuenta(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal PersonalAuth auth
+            ) {
+        personalServicio.desactivarCuenta(id, auth.id());
     }
+
+    @GetMapping("/tripulacion-disponible")
+    public List<PersonalResponse> tripulacionDisponible() {
+        return personalServicio.tripulacionDisponible();
+    }
+
 }

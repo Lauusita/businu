@@ -16,7 +16,7 @@ import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.repositorio.AyudaNavegacionRepositorio;
 import com.lau.api.repositorio.PersonalRepositorio;
 import com.lau.api.repositorio.RegistroInfraestructuraRepositorio;
-import com.lau.api.repositorio.RegistroInfraestructuraSpecs;
+import com.lau.api.especificaciones.RegistroInfraestructuraSpecs;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -35,8 +35,6 @@ import java.util.UUID;
 public class InfraestructuraServicio {
 
     /** "Oportunamente" (§4.4): pasado este plazo, el registro aparece como alerta. */
-    private static final Duration PLAZO_COMUNICACION = Duration.ofHours(24);
-
     private final RegistroInfraestructuraRepositorio registros;
     private final AyudaNavegacionRepositorio ayudas;
     private final PersonalRepositorio personal;

@@ -46,13 +46,13 @@ public class Personal extends BaseEntity {
     private TipoVinculacion tipoVinculacion;
 
     @Column(name = "fecha_vinculacion", nullable = false)
-    private Instant fechaVinculacion;
+    private LocalDate fechaVinculacion;
 
     @Column(name = "fecha_retiro")
-    private Instant fechaRetiro;
+    private LocalDate fechaRetiro;
 
     @Column(nullable = false)
-    private boolean activo;
+    private boolean disponibilidad;
 
     @Column(name = "password_hash", length = 100)
     private String passwordHash;
@@ -60,8 +60,11 @@ public class Personal extends BaseEntity {
     @Column(name = "ultimo_acceso")
     private Instant ultimoAcceso;
 
+    @Column(name = "contrato_activo")
+    private boolean contratoActivo;
+
     public Personal(TipoIdentificacion tipoIdentificacion, String numeroIdentificacion, String nombres,
-                    String apellidos, Rol rol, TipoVinculacion tipoVinculacion, String email, Instant fechaVinculacion, String passwordHash) {
+                    String apellidos, Rol rol, TipoVinculacion tipoVinculacion, String email, LocalDate fechaVinculacion, String passwordHash) {
         this.tipoIdentificacion = tipoIdentificacion;
         this.numeroIdentificacion = numeroIdentificacion;
         this.nombres = nombres;
@@ -70,8 +73,9 @@ public class Personal extends BaseEntity {
         this.email = email;
         this.tipoVinculacion = tipoVinculacion;
         this.fechaVinculacion = fechaVinculacion;
-        this.activo = true;
+        this.disponibilidad = true;
         this.passwordHash = passwordHash;
+        this.contratoActivo = true;
     }
 
     public void habilitarAcceso(String passwordHash) {
@@ -81,16 +85,20 @@ public class Personal extends BaseEntity {
         this.passwordHash = passwordHash;
     }
 
+    public void devolverDisponibilidad() {
+        this.disponibilidad = true;
+    }
     public void revocarAcceso() {
         this.passwordHash = null;
     }
 
     public void desactivarPersonal() {
-        this.activo = false;
+        this.contratoActivo = false;
+        this.setFechaRetiro(LocalDate.now());
     }
 
     public boolean tieneAcceso() {
-        return activo && passwordHash != null;
+        return disponibilidad && passwordHash != null;
     }
 
     public String nombreCompleto() {
