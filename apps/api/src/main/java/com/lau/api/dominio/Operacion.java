@@ -71,6 +71,9 @@ public class Operacion extends BaseEntity {
     @Column(name = "nivel_rio", nullable = false, length = 10)
     private NivelRio nivelRio;
 
+    @Column(name = "cargue_combustible", nullable = false)
+    private boolean cargueCombustible;
+
     /** Novedades mecánicas del viaje. Vacía = sin novedad. */
     @ElementCollection
     @CollectionTable(name = "operacion_condiciones_mecanicas", joinColumns = @JoinColumn(name = "operacion_id"))
@@ -141,6 +144,7 @@ public class Operacion extends BaseEntity {
         this.estado = EstadoOperacion.EN_CURSO;
         this.condicionesMecanicas.addAll(NovedadMecanica.validar(condicionesMecanicas));
         this.paradas.add(new Parada(origen, null, inicio));
+        this.cargueCombustible = false;
     }
 
     /** Actualiza la bitácora mientras el viaje está en curso. Un campo en null no se modifica. */

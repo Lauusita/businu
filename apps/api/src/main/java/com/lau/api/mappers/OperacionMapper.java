@@ -53,7 +53,8 @@ public class OperacionMapper {
                 o.getMotivoSuspension(),
                 o.getHorometroFinal(),
                 o.totalUsuariosTransportados(),
-                o.getRegistradoPor().nombreCompleto());
+                o.getRegistradoPor().nombreCompleto(),
+                o.isCargueCombustible());
     }
 
     public OperacionResumen toResumen(Operacion o) {

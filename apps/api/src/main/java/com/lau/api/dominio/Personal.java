@@ -95,10 +95,11 @@ public class Personal extends BaseEntity {
     public void desactivarPersonal() {
         this.contratoActivo = false;
         this.setFechaRetiro(LocalDate.now());
+        this.revocarAcceso();
     }
 
     public boolean tieneAcceso() {
-        return disponibilidad && passwordHash != null;
+        return contratoActivo && passwordHash != null;
     }
 
     public String nombreCompleto() {

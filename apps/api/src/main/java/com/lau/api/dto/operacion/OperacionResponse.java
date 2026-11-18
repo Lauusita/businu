@@ -34,7 +34,9 @@ public record OperacionResponse(
         String motivoSuspension,
         BigDecimal horometroFinal,
         int totalUsuariosTransportados,
-        String registradoPor) {
+        String registradoPor,
+        boolean cargueCombustible
+) {
 
     public record EmbarcacionResumen(UUID id, Embarcaciones nombre, String patente) { }
 

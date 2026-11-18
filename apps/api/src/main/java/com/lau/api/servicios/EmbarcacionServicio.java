@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class EmbarcacionServicio {
-
     private final EmbarcacionRepositorio embarcaciones;
     private final MantenimientoRepositorio mantenimientos;
     private final EmbarcacionMapper mapper;
@@ -38,17 +37,20 @@ public class EmbarcacionServicio {
     }
 
     /** Para otros servicios (mantenimiento, operación, combustible). */
+    public EmbarcacionResponse find(UUID id) {
+        return embarcaciones.findById(id).map(mapper::toResponse).orElseThrow(() -> new NotFoundException("Embarcación no encontrada"));
+    }
+
     public Embarcacion buscar(UUID id) {
         return embarcaciones.findById(id).orElseThrow(() -> new NotFoundException("Embarcación no encontrada"));
     }
-
     public List<EmbarcacionResponse> listar() {
         return embarcaciones.findAll().stream().map(mapper::toResponse).toList();
     }
 
     /** Hoja de vida: la embarcación con sus motores y todas sus intervenciones. Se calcula, no se guarda. */
     public HojaDeVidaResponse hojaDeVida(UUID embarcacionId) {
-        Embarcacion embarcacion = buscar(embarcacionId);
+        Embarcacion embarcacion = embarcaciones.findById(embarcacionId).orElseThrow(() -> new NotFoundException("Embarcación no encontrada"));
         List<Mantenimiento> lista = mantenimientos.findByEmbarcacionIdOrderByFechaIntervencionDesc(embarcacionId);
         Instant ahora = Instant.now();
 

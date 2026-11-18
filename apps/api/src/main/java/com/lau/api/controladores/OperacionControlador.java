@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 /** Bitácora de viaje (§4.1): zarpes, paradas y cambios de estado. */
 @RestController
-@PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
 @RequestMapping("/operaciones")
 public class OperacionControlador {
 
@@ -29,6 +28,7 @@ public class OperacionControlador {
         this.servicio = servicio;
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping
     public ResponseEntity<OperacionResponse> crear(@Valid @RequestBody CrearOperacionRequest request,
                                                    @AuthenticationPrincipal PersonalAuth auth) {
@@ -53,36 +53,42 @@ public class OperacionControlador {
         return servicio.abiertasEn(embarcadero);
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PatchMapping("/{id}")
     public OperacionResponse actualizar(@PathVariable UUID id, @Valid @RequestBody ActualizarOperacionRequest request,
                                         @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.actualizar(id, request, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping("/{id}/tripulacion/{personalId}")
     public OperacionResponse agregarTripulante(@PathVariable UUID id, @PathVariable UUID personalId,
                                                @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.agregarTripulante(id, personalId, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping("/{id}/paradas")
     public OperacionResponse registrarParada(@PathVariable UUID id, @Valid @RequestBody ParadaRequest request,
                                              @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.registrarParada(id, request, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping("/{id}/finalizar")
     public OperacionResponse finalizar(@PathVariable UUID id, @Valid @RequestBody FinalizarOperacionRequest request,
                                        @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.finalizar(id, request, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping("/{id}/suspender")
     public OperacionResponse suspender(@PathVariable UUID id, @Valid @RequestBody SuspenderOperacionRequest request,
                                        @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.suspender(id, request, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @DeleteMapping("/{id}/tripulacion/{personalId}")
     public OperacionResponse eliminarTripulante(@PathVariable UUID id, @PathVariable UUID personalId,
                                                 @AuthenticationPrincipal PersonalAuth auth) {

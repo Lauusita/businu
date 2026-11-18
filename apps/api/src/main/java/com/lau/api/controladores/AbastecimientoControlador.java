@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@PreAuthorize("hasRole=('SUPERVISOR') or hasRole=('OPERADOR_EMBARCACION')")
+@PreAuthorize("hasAnyRole=('SUPERVISOR','OPERADOR_EMBARCACION')")
 @RequestMapping("/abastecimiento")
 public class AbastecimientoControlador {
     private final AbastecimientoServicio abastecimientoServicio;
