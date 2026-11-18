@@ -38,5 +38,5 @@ public record OperacionResponse(
 
     public record Tripulante(UUID id, String nombre, Rol rol) { }
 
-    public record ParadaResponse(Embarcaderos embarcadero, Instant horaLlegada, Instant horaSalida) { }
+    public record ParadaResponse(String embarcadero, Instant horaLlegada, Instant horaSalida) { }
 }

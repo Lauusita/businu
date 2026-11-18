@@ -43,7 +43,7 @@ public class OperacionMapper {
                         .map(p -> new Tripulante(p.getId(), p.nombreCompleto(), p.getRol()))
                         .toList(),
                 o.getParadas().stream()
-                        .map(p -> new ParadaResponse(p.getEmbarcadero(), p.getHoraLlegada(), p.getHoraSalida()))
+                        .map(p -> new ParadaResponse(p.getEmbarcadero().getDescripcion(), p.getHoraLlegada(), p.getHoraSalida()))
                         .toList(),
                 o.getCondicionesMecanicas(),
                 o.getDetalleCondicionesMecanicas(),
