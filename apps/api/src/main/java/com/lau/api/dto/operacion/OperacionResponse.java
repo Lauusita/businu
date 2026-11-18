@@ -1,6 +1,5 @@
 package com.lau.api.dto.operacion;
 
-import com.lau.api.dominio.enums.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -8,14 +7,16 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.lau.api.dominio.enums.operacion.*;
+import com.lau.api.dominio.enums.personal.Rol;
+import com.lau.api.dto.comun.NovedadMecanicaDTO;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record OperacionResponse(
         UUID id,
-        Long version,
         EmbarcacionResumen embarcacion,
-        Embarcaderos embarcaderoOrigen,
-        Embarcaderos embarcaderoDestino,
+        String embarcaderoOrigen,
+        String embarcaderoDestino,
         Instant fechaHoraInicio,
         Instant fechaHoraFin,
         EstadoOperacion estado,
@@ -26,18 +27,20 @@ public record OperacionResponse(
         NivelRio nivelRio,
         List<Tripulante> tripulacion,
         List<ParadaResponse> paradas,
-        Set<CondicionesMecanicas> condicionesMecanicas,
-        String detalleCondicionesMecanicas,
+        boolean sinNovedadesMecanicas,
+        List<NovedadMecanicaDTO> condicionesMecanicas,
         String novedades,
         String observaciones,
         String motivoSuspension,
         BigDecimal horometroFinal,
         int totalUsuariosTransportados,
-        String registradoPor) {
+        String registradoPor,
+        boolean cargueCombustible
+) {
 
     public record EmbarcacionResumen(UUID id, Embarcaciones nombre, String patente) { }
 
     public record Tripulante(UUID id, String nombre, Rol rol) { }
 
-    public record ParadaResponse(Embarcaderos embarcadero, Instant horaLlegada, Instant horaSalida) { }
+    public record ParadaResponse(String embarcadero, Instant horaLlegada, Instant horaSalida) { }
 }

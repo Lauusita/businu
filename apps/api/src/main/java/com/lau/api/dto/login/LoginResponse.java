@@ -1,6 +1,6 @@
 package com.lau.api.dto.login;
 
-import com.lau.api.dominio.enums.Rol;
+import com.lau.api.dominio.enums.personal.Rol;
 import java.util.UUID;
 
 public record LoginResponse(String accessToken, String tokenType, long expiresIn,

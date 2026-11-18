@@ -20,18 +20,16 @@ import java.util.Set;
 public class AdjuntoControlador {
 
     private final AdjuntoServicio servicio;
-    private final PersonalServicio personalServicio;
 
-    public AdjuntoControlador(AdjuntoServicio servicio, PersonalServicio personalServicio) {
+    public AdjuntoControlador(AdjuntoServicio servicio) {
         this.servicio = servicio;
-        this.personalServicio = personalServicio;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AbastecimientoResponse.SoporteDTO> subir(@RequestParam(defaultValue = "general") String carpeta,
                                                                    @RequestPart("archivo") MultipartFile archivo,
                                                                    @AuthenticationPrincipal PersonalAuth auth) {
-        if (!Set.of("combustible", "mantenimiento", "personal", "general").contains(carpeta)) {
+        if (!Set.of("combustible", "mantenimiento", "personal", "general", "infraestructura").contains(carpeta)) {
             throw new BusinessException("Carpeta no permitida");
         }
 

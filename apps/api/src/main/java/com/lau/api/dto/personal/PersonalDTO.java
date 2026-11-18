@@ -1,8 +1,8 @@
 package com.lau.api.dto.personal;
 
-import com.lau.api.dominio.enums.Rol;
-import com.lau.api.dominio.enums.TipoIdentificacion;
-import com.lau.api.dominio.enums.TipoVinculacion;
+import com.lau.api.dominio.enums.personal.Rol;
+import com.lau.api.dominio.enums.personal.TipoIdentificacion;
+import com.lau.api.dominio.enums.personal.TipoVinculacion;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

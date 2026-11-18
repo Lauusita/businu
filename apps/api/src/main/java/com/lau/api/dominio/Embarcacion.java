@@ -1,21 +1,18 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.EstadoEmbarcacion;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.EstadoEmbarcacion;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
-@Setter
 @Entity
 @Table(name = "embarcacion")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
@@ -34,12 +31,15 @@ public class Embarcacion extends BaseEntity {
     @Column(name = "capacidad_pasajeros", nullable = false)
     private int capacidadPasajeros;
 
+    @Setter
     @Column(length = 100)
     private String constructor;
 
-    @Column(name = "anio_construccion")
+    @Setter
+    @Column(name = "anio_construccion", nullable = false)
     private int anioConstruccion;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoEmbarcacion estado;
@@ -64,4 +64,5 @@ public class Embarcacion extends BaseEntity {
         this.estado = EstadoEmbarcacion.OPERATIVA;
         this.horasOperacionDia = new BigDecimal("6.0");
     }
+
 }

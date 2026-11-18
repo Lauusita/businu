@@ -5,7 +5,12 @@ import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.Usuario;
 import com.lau.api.dominio.VerificacionPrevia;
-import com.lau.api.dominio.enums.*;
+import com.lau.api.dominio.enums.operacion.*;
+import com.lau.api.dominio.enums.pasajeros.GrupoEtario;
+import com.lau.api.dominio.enums.pasajeros.Sexo;
+import com.lau.api.dominio.enums.personal.Rol;
+import com.lau.api.dominio.enums.personal.TipoIdentificacion;
+import com.lau.api.dominio.enums.personal.TipoVinculacion;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.repositorio.EmbarcacionRepositorio;
 import com.lau.api.repositorio.OperacionRepositorio;
@@ -37,9 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class Bootstrap implements ApplicationRunner {
 
     private static final ZoneId COLOMBIA = ZoneId.of("America/Bogota");
-    private static final Instant INICIO = LocalDate.of(2026, 12, 1)
-            .atStartOfDay(ZoneId.of("America/Bogota"))
-            .toInstant();
+    private static final LocalDate INICIO = LocalDate.of(2026, 12, 1);
 
     private final EmbarcacionRepositorio embarcaciones;
     private final PersonalRepositorio personal;
@@ -185,7 +188,7 @@ public class Bootstrap implements ApplicationRunner {
 
         Operacion op = new Operacion(embarcacion, origen, destino, salida.atZone(COLOMBIA).toInstant(),
                 EstadoNave.BUENO, new VerificacionPrevia(true, true, true, true, true, true, true), null,
-                CondicionClimatica.DESPEJADO, NivelRio.NORMAL, Set.of(CondicionesMecanicas.SIN_NOVEDAD), "",piloto);
+                CondicionClimatica.DESPEJADO, NivelRio.NORMAL, List.of(), piloto);
         op.agregarTripulante(piloto);
         op.agregarTripulante(buscar(auxiliar));
         op.agregarTripulante(buscar(guia));

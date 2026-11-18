@@ -7,8 +7,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.ObjectMapper;
 
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
@@ -17,6 +22,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
     public JWTAuthorizationFilter(TokenUtils tokenUtils) {
         this.tokenUtils = tokenUtils;
     }
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -50,11 +56,9 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
     private static void responder401(HttpServletResponse response, String error, String mensaje, boolean expirado)
             throws IOException {
         SecurityContextHolder.clearContext();
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json;charset=UTF-8");
-        if (expirado) {
-            response.setHeader("X-Token-Expired", "true");
-        }
-        response.getWriter().write("{\"error\":\"" + error + "\",\"message\":\"" + mensaje + "\"}");
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, mensaje);
+        p.setProperty("code", error);                       // TOKEN_EXPIRED / UNAUTHORIZED
+        response.setContentType("application/problem+json");
+        MAPPER.writeValue(response.getWriter(), p);
     }
 }

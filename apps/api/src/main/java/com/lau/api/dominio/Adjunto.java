@@ -42,7 +42,7 @@ public class Adjunto extends BaseEntity {
         if (vinculado) {
             throw new BusinessException("Este soporte ya está asociado a otro registro");
         }
-        if (!subidoPor.equals(quien)) {
+        if (!subidoPor.getId().equals(quien.getId())) {
             throw new BusinessException("Solo quien subió el soporte puede asociarlo");
         }
         this.vinculado = true;

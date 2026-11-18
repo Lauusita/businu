@@ -1,7 +1,7 @@
 package com.lau.api.repositorio;
 
 import com.lau.api.dominio.RegistroInfraestructura;
-import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.seguimiento.EstadoSeguimiento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

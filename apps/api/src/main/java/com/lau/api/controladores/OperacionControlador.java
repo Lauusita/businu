@@ -1,22 +1,19 @@
 package com.lau.api.controladores;
 
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.Embarcaderos;
-import com.lau.api.dominio.enums.EstadoOperacion;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dto.operacion.*;
 import com.lau.api.dto.personal.PersonalAuth;
 import com.lau.api.servicios.OperacionServicio;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedModel;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +28,7 @@ public class OperacionControlador {
         this.servicio = servicio;
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping
     public ResponseEntity<OperacionResponse> crear(@Valid @RequestBody CrearOperacionRequest request,
                                                    @AuthenticationPrincipal PersonalAuth auth) {
@@ -45,11 +43,9 @@ public class OperacionControlador {
 
     @GetMapping
     public PagedModel<OperacionResumen> listar(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-            @RequestParam(required = false) EstadoOperacion estado,
-            @RequestParam(required = false) Embarcaciones embarcacion,
+            @ModelAttribute OperacionFilter filtro,
             @PageableDefault(size = 20, sort = "fechaHoraInicio", direction = Sort.Direction.DESC) Pageable pageable) {
-        return new PagedModel<>(servicio.listar(fecha, estado, embarcacion, pageable));
+        return new PagedModel<>(servicio.listar(filtro, pageable));
     }
 
     @GetMapping("/abiertas")
@@ -57,33 +53,45 @@ public class OperacionControlador {
         return servicio.abiertasEn(embarcadero);
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PatchMapping("/{id}")
     public OperacionResponse actualizar(@PathVariable UUID id, @Valid @RequestBody ActualizarOperacionRequest request,
                                         @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.actualizar(id, request, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping("/{id}/tripulacion/{personalId}")
     public OperacionResponse agregarTripulante(@PathVariable UUID id, @PathVariable UUID personalId,
                                                @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.agregarTripulante(id, personalId, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping("/{id}/paradas")
     public OperacionResponse registrarParada(@PathVariable UUID id, @Valid @RequestBody ParadaRequest request,
                                              @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.registrarParada(id, request, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping("/{id}/finalizar")
     public OperacionResponse finalizar(@PathVariable UUID id, @Valid @RequestBody FinalizarOperacionRequest request,
                                        @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.finalizar(id, request, auth.id());
     }
 
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @PostMapping("/{id}/suspender")
     public OperacionResponse suspender(@PathVariable UUID id, @Valid @RequestBody SuspenderOperacionRequest request,
                                        @AuthenticationPrincipal PersonalAuth auth) {
         return servicio.suspender(id, request, auth.id());
+    }
+
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
+    @DeleteMapping("/{id}/tripulacion/{personalId}")
+    public OperacionResponse eliminarTripulante(@PathVariable UUID id, @PathVariable UUID personalId,
+                                                @AuthenticationPrincipal PersonalAuth auth) {
+        return servicio.eliminarTripulante(id, personalId, auth.id());
     }
 }

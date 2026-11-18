@@ -112,20 +112,4 @@ public class AdjuntoServicio {
                 .replaceAll("[\\\\/]", "_");
         return nombre.length() > 255 ? nombre.substring(nombre.length() - 255) : nombre;
     }
-
-    /** S3 no participa en la transacción de la base: si la base hace rollback, se deshace a mano. */
-    private void borrarDeS3SiHayRollback(String clave) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCompletion(int status) {
-                if (status == STATUS_ROLLED_BACK) {
-                    try {
-                        s3.eliminar(clave);
-                    } catch (RuntimeException ignorada) {
-                        // queda huérfano en S3; no debe tapar el error original
-                    }
-                }
-            }
-        });
-    }
 }

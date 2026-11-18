@@ -20,7 +20,6 @@ import lombok.Setter;
  */
 
 @Getter
-@Setter
 @Entity
 @Table(name = "motor")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -41,7 +40,6 @@ public class Motor extends BaseEntity {
 
     @Column(name = "potencia_hp", nullable = false)
     private int potenciaHp;
-
     
     @Column(name = "horometro_actual", nullable = false, precision = 10, scale = 1)
     private BigDecimal horometroActual;

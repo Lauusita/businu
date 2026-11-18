@@ -1,6 +1,6 @@
 package com.lau.api.dto.infraestructura;
 
-import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.seguimiento.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

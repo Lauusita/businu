@@ -3,9 +3,11 @@ package com.lau.api.servicios;
 import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.Usuario;
-import com.lau.api.dominio.enums.Rol;
+import com.lau.api.dominio.enums.personal.Rol;
+import com.lau.api.dto.usuario.UsuarioFilter;
 import com.lau.api.dto.usuario.UsuarioRequest;
 import com.lau.api.dto.usuario.UsuarioResponse;
+import com.lau.api.especificaciones.UsuarioSpecs;
 import com.lau.api.exceptions.BusinessException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.mappers.UsuarioMapper;
@@ -13,11 +15,11 @@ import com.lau.api.repositorio.OperacionRepositorio;
 import com.lau.api.repositorio.PersonalRepositorio;
 import com.lau.api.repositorio.UsuarioRepositorio;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,8 +64,10 @@ public class UsuarioServicio {
                 .orElseThrow(() -> new NotFoundException("Registro de usuarios no encontrado"));
     }
 
-    public List<UsuarioResponse> obtenerTodos() {
-        return usuarioRepositorio.findAll().stream().map(usuarioMapper::toResponse).toList();
+    // UsuarioServicio
+    @Transactional(readOnly = true)
+    public Page<UsuarioResponse> buscar(UsuarioFilter filtro, Pageable pageable) {
+        return usuarioRepositorio.findAll(UsuarioSpecs.de(filtro), pageable).map(usuarioMapper::toResponse);
     }
 
     public List<UsuarioResponse> obtenerPorOperacion(UUID operacionId) {

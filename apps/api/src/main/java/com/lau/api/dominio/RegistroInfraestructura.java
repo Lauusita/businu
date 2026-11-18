@@ -1,6 +1,6 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.seguimiento.*;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;

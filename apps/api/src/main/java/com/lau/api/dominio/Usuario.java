@@ -1,8 +1,8 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.Embarcaderos;
-import com.lau.api.dominio.enums.GrupoEtario;
-import com.lau.api.dominio.enums.Sexo;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
+import com.lau.api.dominio.enums.pasajeros.GrupoEtario;
+import com.lau.api.dominio.enums.pasajeros.Sexo;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
 import java.time.Instant;

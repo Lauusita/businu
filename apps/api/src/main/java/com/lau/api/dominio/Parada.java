@@ -1,6 +1,6 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;

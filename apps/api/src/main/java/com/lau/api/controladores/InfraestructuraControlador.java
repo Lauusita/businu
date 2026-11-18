@@ -1,6 +1,6 @@
 package com.lau.api.controladores;
 
-import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.seguimiento.EstadoSeguimiento;
 import com.lau.api.dominio.enums.seguimiento.TipoRegistroInfraestructura;
 import com.lau.api.dto.personal.PersonalAuth;

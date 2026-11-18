@@ -3,6 +3,7 @@ package com.lau.api.mappers;
 import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.VerificacionPrevia;
+import com.lau.api.dto.comun.NovedadMecanicaDTO;
 import com.lau.api.dto.operacion.OperacionResponse;
 import com.lau.api.dto.operacion.OperacionResponse.EmbarcacionResumen;
 import com.lau.api.dto.operacion.OperacionResponse.ParadaResponse;
@@ -25,11 +26,10 @@ public class OperacionMapper {
         VerificacionPrevia v = o.getVerificacion();
         return new OperacionResponse(
                 o.getId(),
-                o.getVersion(),
                 new EmbarcacionResumen(o.getEmbarcacion().getId(), o.getEmbarcacion().getNombre(),
                         o.getEmbarcacion().getPatente()),
-                o.getEmbarcaderoOrigen(),
-                o.getEmbarcaderoDestino(),
+                o.getEmbarcaderoOrigen().getDescripcion(),
+                o.getEmbarcaderoDestino().getDescripcion(),
                 o.getFechaHoraInicio(),
                 o.getFechaHoraFin(),
                 o.getEstado(),
@@ -44,21 +44,22 @@ public class OperacionMapper {
                         .map(p -> new Tripulante(p.getId(), p.nombreCompleto(), p.getRol()))
                         .toList(),
                 o.getParadas().stream()
-                        .map(p -> new ParadaResponse(p.getEmbarcadero(), p.getHoraLlegada(), p.getHoraSalida()))
+                        .map(p -> new ParadaResponse(p.getEmbarcadero().getDescripcion(), p.getHoraLlegada(), p.getHoraSalida()))
                         .toList(),
-                o.getCondicionesMecanicas(),
-                o.getDetalleCondicionesMecanicas(),
+                o.sinNovedadesMecanicas(),
+                NovedadMecanicaDTO.desde(o.getCondicionesMecanicas()),
                 o.getNovedades(),
                 o.getObservaciones(),
                 o.getMotivoSuspension(),
                 o.getHorometroFinal(),
                 o.totalUsuariosTransportados(),
-                o.getRegistradoPor().nombreCompleto());
+                o.getRegistradoPor().nombreCompleto(),
+                o.isCargueCombustible());
     }
 
     public OperacionResumen toResumen(Operacion o) {
-        return new OperacionResumen(o.getId(), o.getEmbarcacion().getNombre(), o.getEmbarcaderoOrigen(),
-                o.getEmbarcaderoDestino(), o.getFechaHoraInicio(), o.getFechaHoraFin(), o.getEstado(),
+        return new OperacionResumen(o.getId(), o.getEmbarcacion().getNombre(), o.getEmbarcaderoOrigen().getDescripcion(),
+                o.getEmbarcaderoDestino().getDescripcion(), o.getFechaHoraInicio(), o.getFechaHoraFin(), o.getEstado(),
                 o.totalUsuariosTransportados());
     }
 }

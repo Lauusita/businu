@@ -1,9 +1,9 @@
 package com.lau.api.mappers;
 
 import com.lau.api.dominio.*;
-import com.lau.api.dominio.enums.Embarcaderos;
-import com.lau.api.dominio.enums.GrupoEtario;
-import com.lau.api.dominio.enums.Sexo;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
+import com.lau.api.dominio.enums.pasajeros.GrupoEtario;
+import com.lau.api.dominio.enums.pasajeros.Sexo;
 import com.lau.api.dto.usuario.UsuarioRequest;
 import com.lau.api.dto.usuario.UsuarioResponse;
 import com.lau.api.dto.usuario.UsuarioResponse.EmbarcacionResumen;
@@ -12,7 +12,6 @@ import com.lau.api.dto.usuario.UsuarioResponse.EmbarcaderoResumen;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import com.lau.api.exceptions.BusinessException;
 import com.lau.api.exceptions.NotFoundException;
