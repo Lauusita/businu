@@ -1,23 +1,17 @@
 package com.lau.api.controladores;
 
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.Embarcaderos;
-import com.lau.api.dominio.enums.EstadoOperacion;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dto.operacion.*;
 import com.lau.api.dto.personal.PersonalAuth;
-import com.lau.api.dto.personal.PersonalResponse;
 import com.lau.api.servicios.OperacionServicio;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedModel;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

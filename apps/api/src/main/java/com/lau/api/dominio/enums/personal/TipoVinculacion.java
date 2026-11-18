@@ -1,4 +1,4 @@
-package com.lau.api.dominio.enums;
+package com.lau.api.dominio.enums.personal;
 
 import com.lau.api.exceptions.BusinessException;
 

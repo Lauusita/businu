@@ -1,6 +1,6 @@
 package com.lau.api.dto.combustible;
 
-import com.lau.api.dominio.enums.TipoCombustible;
+import com.lau.api.dominio.enums.abastecimiento.TipoCombustible;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;

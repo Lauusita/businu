@@ -1,6 +1,6 @@
 package com.lau.api.dto.embarcacion;
 
-import com.lau.api.dominio.enums.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.List;

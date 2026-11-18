@@ -1,6 +1,6 @@
 package com.lau.api.dto.infraestructura;
 
-import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.seguimiento.ColorLuz;
 import com.lau.api.dominio.enums.seguimiento.EstructuraAyuda;
 import com.lau.api.dominio.enums.seguimiento.FuncionMarca;

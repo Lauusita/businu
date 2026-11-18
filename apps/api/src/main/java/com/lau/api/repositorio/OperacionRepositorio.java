@@ -1,13 +1,12 @@
 package com.lau.api.repositorio;
 
 import com.lau.api.dominio.Operacion;
-import com.lau.api.dominio.enums.EstadoOperacion;
+import com.lau.api.dominio.enums.operacion.EstadoOperacion;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import com.lau.api.dominio.enums.Rol;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 

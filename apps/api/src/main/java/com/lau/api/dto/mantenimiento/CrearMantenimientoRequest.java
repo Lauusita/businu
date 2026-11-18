@@ -1,6 +1,6 @@
 package com.lau.api.dto.mantenimiento;
 
-import com.lau.api.dominio.enums.CondicionesMecanicas;
+import com.lau.api.dominio.enums.operacion.CondicionesMecanicas;
 import com.lau.api.dominio.enums.mantenimiento.*;
 import com.lau.api.dominio.enums.seguimiento.Severidad;
 import jakarta.validation.Valid;

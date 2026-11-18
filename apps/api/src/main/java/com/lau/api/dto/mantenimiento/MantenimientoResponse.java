@@ -1,8 +1,8 @@
 package com.lau.api.dto.mantenimiento;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.lau.api.dominio.enums.CondicionesMecanicas;
-import com.lau.api.dominio.enums.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.CondicionesMecanicas;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
 import com.lau.api.dominio.enums.mantenimiento.*;
 import com.lau.api.dominio.enums.seguimiento.Severidad;
 import com.lau.api.dto.combustible.AbastecimientoResponse.SoporteDTO;

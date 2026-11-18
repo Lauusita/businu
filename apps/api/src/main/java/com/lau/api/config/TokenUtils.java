@@ -1,6 +1,6 @@
 package com.lau.api.config;
 
-import com.lau.api.dominio.enums.Rol;
+import com.lau.api.dominio.enums.personal.Rol;
 import com.lau.api.dto.personal.PersonalAuth;
 import com.lau.api.exceptions.TokenExpiredException;
 import com.lau.api.exceptions.UnauthorizedException;

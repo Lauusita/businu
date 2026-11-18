@@ -1,7 +1,6 @@
-package com.lau.api.dominio.enums;
+package com.lau.api.dominio.enums.operacion;
 
 import lombok.Getter;
-import lombok.Setter;
 
 public enum EstadoOperacion {
     EN_CURSO("En curso"),

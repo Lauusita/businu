@@ -1,10 +1,7 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.Rol;
+import com.lau.api.dominio.enums.personal.Rol;
 import com.lau.api.dominio.enums.mantenimiento.*;
-import com.lau.api.dominio.NovedadMantenimiento;
-import com.lau.api.dominio.RecomendacionMantenimiento;
-import com.lau.api.dominio.RepuestoUtilizado;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
 import java.math.BigDecimal;

@@ -1,18 +1,18 @@
-package com.lau.api.dominio.enums;
+package com.lau.api.dominio.enums.personal;
 
 import com.lau.api.exceptions.BusinessException;
 
 import java.util.Locale;
 
-/** Estado operativo actual de la embarcación. */
-public enum EstadoEmbarcacion {
-    OPERATIVA,
-    EN_MANTENIMIENTO,
-    FUERA_DE_SERVICIO;
+public enum TipoIdentificacion {
+    CC,
+    CE,
+    PPT,
+    PASAPORTE;
 
-    public static EstadoEmbarcacion fromString(String value) {
+    public static TipoIdentificacion fromString(String value) {
         if (value == null || value.isBlank()) {
-            throw new BusinessException("Estado inválido: " + value);
+            throw new BusinessException("Tipo de identificación inválido: " + value);
         }
 
         String normalized = value
@@ -23,7 +23,7 @@ public enum EstadoEmbarcacion {
         try {
             return valueOf(normalized);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("Estado inválido: " + value);
+            throw new BusinessException("Tipo de identificación inválido: " + value);
         }
     }
 }

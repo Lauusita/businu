@@ -1,18 +1,16 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.EstadoEmbarcacion;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.EstadoEmbarcacion;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Entity

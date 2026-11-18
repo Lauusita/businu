@@ -1,6 +1,6 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.CondicionesMecanicas;
+import com.lau.api.dominio.enums.operacion.CondicionesMecanicas;
 import com.lau.api.dominio.enums.seguimiento.Severidad;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.Column;

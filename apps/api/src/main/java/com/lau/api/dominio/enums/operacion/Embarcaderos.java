@@ -1,10 +1,7 @@
-package com.lau.api.dominio.enums;
+package com.lau.api.dominio.enums.operacion;
 
 
-import com.lau.api.exceptions.BusinessException;
 import lombok.Getter;
-
-import java.util.Locale;
 
 public enum Embarcaderos {
     RANCHO_GRANDE("Rancho Grande"),

@@ -1,8 +1,8 @@
 package com.lau.api.dto.operacion;
 
-import com.lau.api.dominio.enums.CondicionClimatica;
-import com.lau.api.dominio.enums.CondicionesMecanicas;
-import com.lau.api.dominio.enums.NivelRio;
+import com.lau.api.dominio.enums.operacion.CondicionClimatica;
+import com.lau.api.dominio.enums.operacion.CondicionesMecanicas;
+import com.lau.api.dominio.enums.operacion.NivelRio;
 import jakarta.validation.constraints.Size;
 
 import java.util.Set;

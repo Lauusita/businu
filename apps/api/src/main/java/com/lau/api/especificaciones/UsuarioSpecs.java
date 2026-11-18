@@ -1,8 +1,8 @@
 package com.lau.api.especificaciones;
 
 import com.lau.api.dominio.Usuario;
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dto.usuario.UsuarioFilter;
 import jakarta.persistence.criteria.MapJoin;
 import java.time.LocalDate;

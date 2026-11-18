@@ -1,15 +1,13 @@
 package com.lau.api.especificaciones;
 
 import com.lau.api.dominio.Operacion;
-import com.lau.api.dominio.Usuario;
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.Embarcaderos;
-import com.lau.api.dominio.enums.EstadoOperacion;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.EstadoOperacion;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
 import com.lau.api.dto.operacion.OperacionFilter;
-import com.lau.api.dto.usuario.UsuarioFilter;
 import org.springframework.data.jpa.domain.Specification;
 
 /** Filtros opcionales del listado: un parámetro null no filtra. */

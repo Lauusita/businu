@@ -1,8 +1,8 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.Rol;
-import com.lau.api.dominio.enums.TipoIdentificacion;
-import com.lau.api.dominio.enums.TipoVinculacion;
+import com.lau.api.dominio.enums.personal.Rol;
+import com.lau.api.dominio.enums.personal.TipoIdentificacion;
+import com.lau.api.dominio.enums.personal.TipoVinculacion;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
 import java.time.Instant;

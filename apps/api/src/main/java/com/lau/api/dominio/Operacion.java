@@ -1,12 +1,12 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.*;
+import com.lau.api.dominio.enums.operacion.*;
+import com.lau.api.dominio.enums.personal.Rol;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.Getter;

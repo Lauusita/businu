@@ -1,7 +1,7 @@
 package com.lau.api.dto.embarcacion;
 
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.EstadoEmbarcacion;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.EstadoEmbarcacion;
 import java.util.List;
 import java.util.UUID;
 

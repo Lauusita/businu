@@ -1,6 +1,6 @@
 package com.lau.api.dominio;
 
-import com.lau.api.dominio.enums.TipoCombustible;
+import com.lau.api.dominio.enums.abastecimiento.TipoCombustible;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
 import java.math.BigDecimal;

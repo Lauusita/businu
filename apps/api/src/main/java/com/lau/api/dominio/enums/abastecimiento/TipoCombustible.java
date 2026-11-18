@@ -1,4 +1,4 @@
-package com.lau.api.dominio.enums;
+package com.lau.api.dominio.enums.abastecimiento;
 
 public enum TipoCombustible {
     GASOLINA_CORRIENTE,

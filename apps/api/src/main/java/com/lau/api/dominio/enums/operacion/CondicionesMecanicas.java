@@ -1,4 +1,4 @@
-package com.lau.api.dominio.enums;
+package com.lau.api.dominio.enums.operacion;
 
 /** Condiciones mecánicas y operacionales identificadas durante el viaje (§4.1). */
 public enum CondicionesMecanicas {

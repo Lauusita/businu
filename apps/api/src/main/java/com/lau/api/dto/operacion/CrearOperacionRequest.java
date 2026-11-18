@@ -1,6 +1,6 @@
 package com.lau.api.dto.operacion;
 
-import com.lau.api.dominio.enums.*;
+import com.lau.api.dominio.enums.operacion.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 

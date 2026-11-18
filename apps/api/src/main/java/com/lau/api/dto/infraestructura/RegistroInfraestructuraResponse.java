@@ -1,12 +1,10 @@
 package com.lau.api.dto.infraestructura;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.lau.api.dominio.enums.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.seguimiento.*;
-import com.lau.api.dto.combustible.AbastecimientoResponse;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 

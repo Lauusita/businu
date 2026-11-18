@@ -4,8 +4,8 @@ import com.lau.api.dominio.AbastecimientoCombustible;
 import com.lau.api.dominio.Adjunto;
 import com.lau.api.dominio.Embarcacion;
 import com.lau.api.dominio.Personal;
-import com.lau.api.dominio.enums.EstadoOperacion;
-import com.lau.api.dominio.enums.Rol;
+import com.lau.api.dominio.enums.operacion.EstadoOperacion;
+import com.lau.api.dominio.enums.personal.Rol;
 import com.lau.api.dto.combustible.AbastecimientoRequest;
 import com.lau.api.dto.combustible.AbastecimientoResponse;
 import com.lau.api.dto.combustible.AbastecimientoResponse.SoporteDTO;
@@ -21,7 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 /** Registro de combustible (§4.5). */
 @Service

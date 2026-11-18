@@ -1,10 +1,10 @@
 package com.lau.api.dto.usuario;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.Embarcaderos;
-import com.lau.api.dominio.enums.GrupoEtario;
-import com.lau.api.dominio.enums.Sexo;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
+import com.lau.api.dominio.enums.pasajeros.GrupoEtario;
+import com.lau.api.dominio.enums.pasajeros.Sexo;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;

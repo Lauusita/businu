@@ -1,8 +1,8 @@
 package com.lau.api.dto.operacion;
 
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.Embarcaderos;
-import com.lau.api.dominio.enums.EstadoOperacion;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
+import com.lau.api.dominio.enums.operacion.EstadoOperacion;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;

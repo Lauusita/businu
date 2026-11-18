@@ -1,8 +1,8 @@
 package com.lau.api.dto.usuario;
 
-import com.lau.api.dominio.enums.Embarcaderos;
-import com.lau.api.dominio.enums.GrupoEtario;
-import com.lau.api.dominio.enums.Sexo;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
+import com.lau.api.dominio.enums.pasajeros.GrupoEtario;
+import com.lau.api.dominio.enums.pasajeros.Sexo;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;

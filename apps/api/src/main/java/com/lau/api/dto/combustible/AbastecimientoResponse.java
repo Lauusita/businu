@@ -1,8 +1,8 @@
 package com.lau.api.dto.combustible;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.lau.api.dominio.enums.Embarcaciones;
-import com.lau.api.dominio.enums.TipoCombustible;
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.abastecimiento.TipoCombustible;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
