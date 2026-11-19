@@ -2,7 +2,6 @@ package com.lau.api.servicios;
 
 import com.lau.api.dominio.Adjunto;
 import com.lau.api.dominio.Personal;
-import com.lau.api.dto.personal.PersonalResponse;
 import com.lau.api.exceptions.BusinessException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.repositorio.AdjuntoRepositorio;
@@ -19,11 +18,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.lau.api.repositorio.PersonalRepositorio;
+import com.lau.api.utilidades.ConversorPdf;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 /**

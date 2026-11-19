@@ -22,11 +22,9 @@ import java.util.UUID;
 @RequestMapping("/personal")
 public class PersonalControlador {
     private final PersonalServicio personalServicio;
-    private final PersonalMapper personalMapper;
 
-    public PersonalControlador(PersonalServicio personalServicio, PersonalMapper personalMapper) {
+    public PersonalControlador(PersonalServicio personalServicio) {
         this.personalServicio = personalServicio;
-        this.personalMapper = personalMapper;
     }
 
     @GetMapping

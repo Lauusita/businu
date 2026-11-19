@@ -14,26 +14,30 @@ import lombok.Setter;
 
 /** Personal de la operación (§4.6). Quien usa el sistema tiene username y contraseña; los guías no. */
 @Getter
-@Setter
 @Entity
 @Table(name = "personal",
         uniqueConstraints = @UniqueConstraint(columnNames = {"tipo_identificacion", "numero_identificacion"}))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Personal extends BaseEntity {
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_identificacion", nullable = false, length = 10)
     private TipoIdentificacion tipoIdentificacion;
 
+    @Setter
     @Column(name = "numero_identificacion", nullable = false, length = 20, unique = true)
     private String numeroIdentificacion;
 
+    @Setter
     @Column(nullable = false, length = 80)
     private String nombres;
 
+    @Setter
     @Column(nullable = false, length = 80)
     private String apellidos;
 
+    @Setter
     @Column(length = 120, unique = true)
     private String email;
 
@@ -41,25 +45,31 @@ public class Personal extends BaseEntity {
     @Column(nullable = false, length = 20)
     private Rol rol;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_vinculacion", nullable = false, length = 30)
     private TipoVinculacion tipoVinculacion;
 
+    @Setter
     @Column(name = "fecha_vinculacion", nullable = false)
     private LocalDate fechaVinculacion;
 
+    @Setter
     @Column(name = "fecha_retiro")
     private LocalDate fechaRetiro;
 
+    @Setter
     @Column(nullable = false)
     private boolean disponibilidad;
 
     @Column(name = "password_hash", length = 100)
     private String passwordHash;
 
+    @Setter
     @Column(name = "ultimo_acceso")
     private Instant ultimoAcceso;
 
+    @Setter
     @Column(name = "contrato_activo")
     private boolean contratoActivo;
 

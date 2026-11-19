@@ -1,4 +1,4 @@
-package com.lau.api.servicios;
+package com.lau.api.utilidades;
 
 import com.lau.api.exceptions.BusinessException;
 import java.io.ByteArrayOutputStream;
