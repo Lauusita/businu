@@ -1,6 +1,14 @@
 package com.lau.api.controladores;
 
+import com.lau.api.dominio.enums.operacion.Embarcaciones;
+import com.lau.api.dominio.enums.operacion.Embarcaderos;
+import com.lau.api.dominio.enums.pasajeros.AgrupacionSerie;
 import com.lau.api.dto.personal.PersonalAuth;
+import com.lau.api.dto.usuario.ConsolidadoDemandaResponse;
+import com.lau.api.servicios.ConsolidadoDemandaServicio;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.lau.api.dto.usuario.UsuarioFilter;
 import com.lau.api.dto.usuario.UsuarioRequest;
 import com.lau.api.dto.usuario.UsuarioResponse;
@@ -23,9 +31,11 @@ import java.util.UUID;
 @RequestMapping("/pasajeros")
 public class UsuarioControlador {
     private final UsuarioServicio usuarioServicio;
+    private final ConsolidadoDemandaServicio consolidadoServicio;
 
-    public UsuarioControlador(UsuarioServicio usuarioServicio) {
+    public UsuarioControlador(UsuarioServicio usuarioServicio, ConsolidadoDemandaServicio consolidadoServicio) {
         this.usuarioServicio = usuarioServicio;
+        this.consolidadoServicio = consolidadoServicio;
     }
 
     // UsuarioControlador
@@ -43,6 +53,21 @@ public class UsuarioControlador {
     ) {
         UsuarioResponse creado = usuarioServicio.registrar(request, auth.id());
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+    }
+
+    /**
+     * Consolidado de la demanda (§4.2, R22): totales, sexo, grupo etario, origen, destino, franja horaria,
+     * hora y serie de tiempo. Por defecto, el mes en curso agrupado por día.
+     */
+    @PreAuthorize("hasRole('SUPERVISOR')")
+    @GetMapping("/consolidado")
+    public ConsolidadoDemandaResponse consolidado(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) Embarcaciones embarcacion,
+            @RequestParam(required = false) Embarcaderos origen,
+            @RequestParam(required = false) AgrupacionSerie agrupacion) {
+        return consolidadoServicio.consolidar(desde, hasta, embarcacion, origen, agrupacion);
     }
 
     @GetMapping("/operacion/{id}")

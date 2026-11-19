@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.dominio.enums.operacion.Embarcaciones;
 import com.lau.api.dominio.enums.operacion.EstadoEmbarcacion;
 import jakarta.persistence.*;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Getter
 @Entity
+@Audited
 @Table(name = "embarcacion")
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 public class Embarcacion extends BaseEntity {

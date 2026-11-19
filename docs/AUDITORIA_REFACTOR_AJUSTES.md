@@ -1,6 +1,6 @@
 # Auditoría y ajustes — rama `refactor-ajustes`
 
-Backend BUSINÚ (`apps/api`). Fecha: 18 de noviembre de 2026 · **Actualizado el 19 de noviembre** con tus decisiones (sección H).
+Backend BUSINÚ (`apps/api`). Fecha: 18 de noviembre de 2026 · **Actualizado el 19 de noviembre** con tus decisiones (sección H) y con la rama `refactor-ajustes-2` (sección I).
 Referencias: Anexo Técnico SA-STTM-024-2026 y auditoría de la rama `refactor` (commit `9cbe446`).
 
 **Convenciones**
@@ -76,8 +76,8 @@ Están ordenados por severidad.
 | R1 | Tres embarcaderos | CUMPLE | — |
 | R2 | Betancí y Yapel | CUMPLE | — |
 | R3 | Estructura del personal | CUMPLE | — |
-| R4 | §3 Dos turnos | NO CUMPLE | No se pidió en esta fase y no se implementó |
-| R5 | Información verificable | PARCIAL | Hay versión y fechas; no queda registro del **autor** de cada modificación (`@CreatedBy`) |
+| R4 | §3 Dos turnos | FUERA DE ALCANCE | Decisión de negocio: los turnos son organización del personal y no se modelan en el software |
+| R5 | Información verificable | CUMPLE *(antes PARCIAL)* | `creado_por`/`modificado_por` en cada registro, más el historial de cada modificación con autor y fecha (Envers) y `GET /auditoria/{tipo}/{id}` (sección I) |
 | R6 | Fecha y embarcación | CUMPLE | — |
 | R7 | Ingreso y salida por embarcadero | CUMPLE | — |
 | R8 | Recorrido y estaciones | CUMPLE | N-6 corregido |
@@ -89,12 +89,12 @@ Están ordenados por severidad.
 | R14 | Tripulación | CUMPLE | N-14 y N-15 corregidos |
 | R15 | Novedades y observaciones | CUMPLE | — |
 | R16 | §4.1 Cargue de combustible en la bitácora | CUMPLE *(antes NO CUMPLE)* | Al zarpar, los abastecimientos hechos desde el viaje anterior quedan asociados al viaje. `cargueCombustible` y `cargues[]` aparecen en la bitácora, y el abastecimiento informa su `operacionId` |
-| R17 | Bitácoras conservadas | PARCIAL | Las consultas funcionan. `V1__initial_schema.sql` sigue vacío; las migraciones son prerrequisito de producción, fuera de esta fase |
+| R17 | Bitácoras conservadas | CUMPLE *(antes PARCIAL)* | Migración `V1__initial_schema.sql` completa. `dev` y `prod` arrancan con Flyway y `ddl-auto=validate`, y los datos sobreviven a los reinicios (sección I) |
 | R18 | Número de usuarios | CUMPLE | — |
 | R19 | Grupo etario y sexo | CUMPLE | Obligatorios (`@NotEmpty` y la suma debe coincidir con el total). `NO_REPORTA` no se implementó, por decisión de negocio |
 | R20 | Origen y destino + **capacidad** | CUMPLE *(antes PARCIAL)* | Capacidad acumulada por tramo |
 | R21 | Fecha y viaje | CUMPLE | — |
-| R22 | Consolidado de la demanda | NO CUMPLE — **pendiente de aprobación** | Propuesta en la sección F |
+| R22 | Consolidado de la demanda | CUMPLE *(antes NO CUMPLE)* | `GET /pasajeros/consolidado`, solo para el supervisor (sección I) |
 | R23–R28 | §4.3 Hoja de vida y mantenimiento | CUMPLE | N-19 corregido |
 | R29–R33 | §4.4 Infraestructura | CUMPLE | — |
 | R34 | §4.4 Evidencias | CUMPLE *(antes PARCIAL)* | Evidencias conectadas al registro (`evidenciaIds`); se almacenan en PDF. Una foto JPG/PNG se convierte a PDF al subirla (sección H) |
@@ -114,7 +114,7 @@ Están ordenados por severidad.
 | R50 | §7.1.12 Constancia de comunicación | CUMPLE *(antes PARCIAL)* | Solo correo. La estructura está lista; el envío real depende de configurar Amazon SES (SMTP) |
 | R51 | §7.2–7.3 Acta, documentos, sustitución | FUERA DE ALCANCE | La sustitución (N-9) se descartó. Los documentos con vigencia se tratarán con §4.6 |
 
-**Resumen:** 41 CUMPLE, 2 PARCIAL (R5 y R17), 2 NO CUMPLE (R4 y R22, este último pendiente por decisión) y 6 FUERA DE ALCANCE (R40–R44 y R51). No queda ninguna regresión abierta.
+**Resumen (con la rama `refactor-ajustes-2`):** 44 CUMPLE y 7 FUERA DE ALCANCE (R4, R40–R44 y R51). No queda ningún requerimiento parcial ni no cumplido, ni ninguna regresión abierta.
 
 ### Detalle de lo implementado
 
@@ -306,11 +306,7 @@ La consulta se haría con agregaciones en la base de datos sobre `usuarios`, `us
 
 | Requerimiento | Qué falta |
 |---|---|
-| **R22** | Se deja así por ahora (decisión del 19 de noviembre). La propuesta de la sección F queda como referencia |
-| **R5** | Registro del autor de cada modificación (`@CreatedBy` / `@LastModifiedBy`) |
-| **R17** | Migración V1 con el esquema completo (prerrequisito de producción) |
-| **R4** | Turnos (no pedido en esta fase) |
-| **H-25** | `@Setter` a nivel de clase en `Personal` (bajo) |
+| **Primer usuario en producción** | Sin él nadie puede entrar en `prod`. Se elige entre la opción (a) o (b) de la sección I |
 
 **Configuración pendiente**
 
@@ -349,3 +345,103 @@ La consulta se haría con agregaciones en la base de datos sobre `usuarios`, `us
 - **Migración futura:** la columna `operacion_id` ya no existe en `suspensiones_embarcacion`.
 
 **Cambio de contrato para el frontend:** `POST /operaciones/{id}/finalizar` y `/suspender` exigen `lecturasHorometro` con todos los motores. `POST /adjuntos` acepta también fotos JPG/PNG.
+
+---
+
+## I. Rama `refactor-ajustes-2` (19 de noviembre)
+
+Rama creada desde `refactor-ajustes` en `3d8fb97`, que incluye tu commit de H-25 y el cambio de carpeta de `ConversorPdf`.
+
+### Decisiones aplicadas
+
+| Tema | Decisión | Resultado |
+|---|---|---|
+| R22 | Implementar la propuesta; solo supervisor; incluir viajes suspendidos; sexo y edad por franja horaria, sin cruzar con destino | Implementado |
+| R5 | Registrar el autor de cada modificación | Implementado |
+| R17 | Crear el esquema SQL para Flyway | Implementado |
+| R4 | Los turnos no se modelan en el software | FUERA DE ALCANCE |
+| H-25 | Revisar tu corrección | Revisado (ver abajo) |
+| R50 | Lo configuras tú con Amazon SES y cPanel | Sin cambios de código |
+| Límite de intentos de login | No por ahora: cada contratista recibe guía y contraseña | Descartado |
+
+### R22 — `GET /pasajeros/consolidado` (solo SUPERVISOR)
+
+**Parámetros:** `desde` y `hasta` (fechas, ambas incluidas; por defecto, el mes en curso), `embarcacion`, `origen` y `agrupacion` (`DIA`, `SEMANA` o `MES`; por defecto `DIA`).
+
+**Respuesta**, toda en hora de Colombia:
+
+| Campo | Contenido |
+|---|---|
+| Totales | `totalUsuarios`, `viajes` y `promedioPorViaje` |
+| `suspendidos` | Viajes y usuarios de viajes suspendidos. Están **incluidos** en los totales y además se informan aparte |
+| Distribuciones | `porSexo`, `porGrupoEtario`, `porOrigen`, `porDestino` y la matriz `origenDestino` |
+| **`porFranjaHoraria`** | Para **mañana** (05:00–11:59), **tarde** (12:00–17:59) y **noche** (18:00–21:00): usuarios, **sexo** y **grupo etario** de cada franja |
+| `porHora` | El mismo detalle hora a hora, para mirar más fino dentro de una franja |
+| `serie` | Usuarios y viajes por día, por semana (empieza el lunes) o por mes |
+
+Cada distribución trae todas las categorías, aunque valgan 0, para que las gráficas sean estables.
+
+**Por qué esas franjas:** dividen la jornada de 05:00 a 21:00 en mañana, tarde y noche, que es como pediste evaluarla. El detalle por hora permite reagrupar después sin cambiar la API.
+
+**Cómo se calcula:** las sumas se hacen en PostgreSQL, sin cargar los registros uno por uno. Sexo, grupo etario y destino se suman por separado y no se cruzan entre sí, como pediste.
+
+### R5 — Autor de cada modificación
+
+1. **En cada registro:** columnas `creado_por` y `modificado_por` (id del Personal del token), con `@CreatedBy` y `@LastModifiedBy`. Las llena el sistema y no el cliente.
+2. **Historial completo con Hibernate Envers:** cada transacción que crea, modifica o elimina datos genera una *revisión* (tabla `revisiones`) con fecha y autor. Las tablas `*_aud` guardan el estado de cada registro en cada revisión. Se auditan las 12 entidades.
+3. **Consulta: `GET /auditoria/{tipo}/{id}`** (solo SUPERVISOR). Devuelve la lista de cambios de un registro: revisión, fecha, acción (`CREACION`, `MODIFICACION` o `ELIMINACION`), autor (o "Sistema" si no hubo usuario) y `camposModificados` respecto de la revisión anterior. Tipos disponibles: `OPERACION`, `PASAJEROS`, `MANTENIMIENTO`, `ABASTECIMIENTO`, `PERSONAL`, `EMBARCACION`, `MOTOR`, `INFRAESTRUCTURA`, `AYUDA_NAVEGACION`, `SUSPENSION`, `COMUNICACION` y `ADJUNTO`.
+
+**Excepciones deliberadas**
+
+- **El hash de la contraseña** no se copia al historial.
+- **El login** (`ultimoAcceso`) no genera revisiones.
+- **Seis listas de objetos embebidos no se versionan** dentro del historial: paradas, horómetros y novedades mecánicas de la operación, y repuestos, novedades y recomendaciones del mantenimiento.
+  - **Por qué:** es una limitación conocida de Envers con este tipo de listas. Hacía fallar las transacciones que las crean y las modifican a la vez, como el zarpe y la llegada.
+  - **Qué se conserva:** el cambio sigue quedando registrado con autor y fecha, porque toda modificación de esas listas incrementa la versión del registro dueño. En ese caso `camposModificados` sale vacío.
+
+### R17 — Migración Flyway
+
+- **`V1__initial_schema.sql`:** 45 tablas (negocio, colecciones, `*_aud` y `revisiones`) con sus restricciones, índices y llaves foráneas.
+  - **Cómo se generó:** a partir del esquema real que produce Hibernate.
+  - **Cómo se validó:** la aplicación arranca **solo con Flyway** y `ddl-auto=validate`, sin ninguna diferencia.
+- **`dev` deja de usar `ddl-auto=create`:** ahora usa Flyway y `validate`, igual que producción. Los datos ya no se borran en cada reinicio.
+
+**Importante para tu entorno local:** si tu base de datos local ya tiene tablas creadas por Hibernate, Flyway no va a aplicar V1 sobre ellas. Debes borrar y volver a crear la base una vez, por ejemplo con `DROP DATABASE businu; CREATE DATABASE businu;`.
+
+**Regla desde ahora:** todo cambio de entidades se acompaña de una migración nueva (`V2__...`). Nunca se edita un V1 ya aplicado.
+
+### H-25 — Revisión de tu corrección
+
+Correcto en lo importante: `rol` y `passwordHash` ya no tienen setter, así que solo cambian por los métodos de negocio (`habilitarAcceso` y `revocarAcceso`).
+
+Quedan setters en `contratoActivo`, `fechaRetiro` y `disponibilidad`, que permitirían saltarse `desactivarPersonal()` y `devolverDisponibilidad()`. Hoy solo `OperacionServicio` usa `setDisponibilidad(false)`, de forma correcta. No es un riesgo actual, solo una puerta abierta, así que no lo modifiqué.
+
+### R50 — Notas para Amazon SES con cPanel (sin cambios de código)
+
+El rebote que describes es típico cuando SES y el correo de cPanel se pisan en el DNS. Recomendaciones:
+
+1. **Registros MX:** no los toques. Deben seguir apuntando al servidor de cPanel, que es el que **recibe** el correo. SES solo **envía**.
+2. **DKIM de SES:** agrega solo los **3 registros CNAME** que te da SES. No reemplazan nada de cPanel.
+3. **SPF:** debe haber **un solo** registro TXT SPF que incluya a los dos. Por ejemplo: `v=spf1 +a +mx include:amazonses.com ~all`, más el `include` que use cPanel si aplica. Dos registros SPF separados invalidan los dos.
+4. **"MAIL FROM" personalizado:** si lo usas en SES, usa un **subdominio** (por ejemplo `envios.tudominio.com`) con su propio MX hacia SES. Nunca el dominio raíz, porque eso es lo que choca con el MX de cPanel.
+5. **"Email Routing" en cPanel:** debe estar en *Local Mail Exchanger* si los buzones viven en cPanel.
+6. **Remitente:** `CORREO_REMITENTE` debe ser una identidad verificada en SES. La cuenta de SES debe salir del modo *sandbox* para enviar a cualquier destinatario.
+
+### Pruebas
+
+| Prueba | Resultado |
+|---|---|
+| `./gradlew clean build` y la prueba existente | Correctos (1/1) |
+| Batería de regresión (sobre una base creada solo por Flyway) | **109/109** |
+| Batería nueva de R22 y R5 | **34/34**. El consolidado se comparó contra sumas hechas directamente en la base: total, viajes, por hora en hora de Colombia, por franja (con sexo y edad que suman lo de cada franja), por origen y destino, suspendidos, series de día, semana (lunes) y mes, filtros y permisos. La auditoría cubre autor de creación y modificación, campos modificados, "Sistema" para los datos de prueba, que el login no genere revisiones y que el hash no esté en el historial |
+| Reinicio sobre una base ya migrada | Flyway "up to date" y no se pierden datos |
+| Perfil `prod` sobre una base vacía | Arranca, aplica V1 y no carga datos de prueba |
+| Correo | No se probó, como pediste |
+
+### Pendiente nuevo detectado
+
+**Primer usuario en producción.** En `prod` el Bootstrap no corre, así que la base queda **sin ningún usuario**. Crear personal exige el rol SUPERVISOR, por lo que nadie podría entrar la primera vez. Hay dos opciones:
+- **(a)** Una migración `V2` con el supervisor inicial y una contraseña temporal que se cambia al primer ingreso.
+- **(b)** Al arrancar, crear el supervisor solo si no existe ninguno, con datos tomados de variables de entorno.
+
+Cualquiera de las dos se integra bien con la guía y las contraseñas preestablecidas que vas a entregar a los contratistas.

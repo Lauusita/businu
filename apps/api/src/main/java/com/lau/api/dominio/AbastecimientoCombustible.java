@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.dominio.enums.abastecimiento.TipoCombustible;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 /** Registro de combustible (§4.5). El abastecimiento se hace sin pasajeros a bordo (§7.1.10). */
 @Getter
 @Entity
+@Audited
 @Table(name = "abastecimientos_combustible",
         indexes = @Index(name = "ix_abastecimiento_embarcacion_fecha", columnList = "embarcacion_id, fecha_hora"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

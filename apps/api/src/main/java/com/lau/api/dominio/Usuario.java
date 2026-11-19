@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.pasajeros.GrupoEtario;
 import com.lau.api.dominio.enums.pasajeros.Sexo;
@@ -22,6 +23,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
+@Audited
 @Table(name = "usuarios")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Usuario extends BaseEntity {

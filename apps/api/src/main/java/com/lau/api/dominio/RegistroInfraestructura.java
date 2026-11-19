@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.seguimiento.*;
 import com.lau.api.exceptions.BusinessException;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
+@Audited
 @Table(name = "registros_infraestructura", indexes = {
         @Index(name = "ix_reg_infra_embarcadero", columnList = "embarcadero, fecha_hora"),
         @Index(name = "ix_reg_infra_ayuda", columnList = "ayuda_id, fecha_hora"),

@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 /** Metadatos de un archivo guardado fuera de la base (S3 o disco). La base nunca guarda los bytes. */
 @Getter
 @Entity
+@Audited
 @Table(name = "adjuntos")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Adjunto extends BaseEntity {
