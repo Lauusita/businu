@@ -12,6 +12,6 @@ public interface SuspensionEmbarcacionRepositorio extends JpaRepository<Suspensi
     Optional<SuspensionEmbarcacion> findFirstByEmbarcacionIdAndFechaFinIsNull(UUID embarcacionId);
 
     /** Historial completo, la más reciente primero. */
-    @EntityGraph(attributePaths = {"embarcacion", "operacion", "registradoPor", "levantadaPor"})
+    @EntityGraph(attributePaths = {"embarcacion", "registradoPor", "levantadaPor"})
     List<SuspensionEmbarcacion> findByEmbarcacionIdOrderByFechaInicioDesc(UUID embarcacionId);
 }

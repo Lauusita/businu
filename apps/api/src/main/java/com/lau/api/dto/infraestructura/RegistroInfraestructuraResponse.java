@@ -5,6 +5,8 @@ import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.dominio.enums.seguimiento.*;
 
 import java.time.Instant;
+import com.lau.api.dto.combustible.AbastecimientoResponse.SoporteDTO;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,7 +30,8 @@ public record RegistroInfraestructuraResponse(
         Long horasSinComunicar,              // solo si está pendiente: alerta de "oportunamente"
         ComunicacionDTO comunicacion,
         CierreDTO cierre,
-        String registradoPor) {
+        String registradoPor,
+        List<SoporteDTO> evidencias) {       // R34: PDF almacenados (las fotos se convierten a PDF)
 
     public record AyudaResumen(UUID id, String codigo, EstructuraAyuda estructura,
                                FuncionMarca funcion, boolean luminosa) { }

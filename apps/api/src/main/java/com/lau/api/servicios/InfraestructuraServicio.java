@@ -39,9 +39,11 @@ public class InfraestructuraServicio {
     private final RegistroInfraestructuraRepositorio registros;
     private final AyudaNavegacionRepositorio ayudas;
     private final PersonalRepositorio personal;
+    private final AdjuntoServicio adjuntoServicio;
 
     public InfraestructuraServicio(RegistroInfraestructuraRepositorio registros, AyudaNavegacionRepositorio ayudas,
-                                   PersonalRepositorio personal) {
+                                   PersonalRepositorio personal, AdjuntoServicio adjuntoServicio) {
+        this.adjuntoServicio = adjuntoServicio;
         this.registros = registros;
         this.ayudas = ayudas;
         this.personal = personal;
@@ -88,6 +90,9 @@ public class InfraestructuraServicio {
                 r.aspectosAfectados(), r.descripcion(), r.accionesRealizadas(),
                 r.requiereIntervencionExterna(), r.entidadCompetente(), registrador);
 
+        if (r.evidenciaIds() != null) {                  // R34: misma vinculación que en mantenimiento
+            r.evidenciaIds().forEach(id -> reg.agregarEvidencia(adjuntoServicio.vincular(id, registrador)));
+        }
         return toResponse(registros.save(reg));
     }
 
@@ -190,6 +195,10 @@ public class InfraestructuraServicio {
                         c.getComunicadoPor().nombreCompleto()),
                 r.getFechaCierre() == null ? null : new CierreDTO(r.getFechaCierre(), r.getObservacionCierre(),
                         r.getCerradoPor().nombreCompleto()),
-                r.getRegistradoPor().nombreCompleto());
+                r.getRegistradoPor().nombreCompleto(),
+                r.getEvidencias().stream()
+                        .map(e -> new com.lau.api.dto.combustible.AbastecimientoResponse.SoporteDTO(
+                                e.getId(), e.getNombreOriginal(), e.getTamanoBytes(), e.getSha256()))
+                        .toList());
     }
 }

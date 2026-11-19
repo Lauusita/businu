@@ -145,6 +145,7 @@ public class Bootstrap implements ApplicationRunner {
         // Un viaje suspendido por tormenta (§7.1.7), sin pasajeros
         Operacion suspendido = nuevaOperacion(yapel, false, ayer.atTime(14, 30), "1067900017", "1067900018", "1067900024");
         suspendido.actualizarBitacora(CondicionClimatica.TORMENTA_ELECTRICA, NivelRio.NORMAL, Operacion.SIN_NOVEDADES, Operacion.SIN_NOVEDADES);
+        suspendido.registrarHorometrosFinales(horometroMas(yapel, "0.2"));
         suspendido.suspender(suspendido.getFechaHoraInicio().plusSeconds(600),
                 new MotivoSuspension(CausaSuspension.CONDICION_CLIMATICA, "Tormenta eléctrica: suspensión preventiva", null));
 
@@ -177,6 +178,7 @@ public class Bootstrap implements ApplicationRunner {
                     Map.of(destino, abordanCalle22), llegada22);
         }
 
+        op.registrarHorometrosFinales(horometroMas(embarcacion, "0.9"));   // R37: 55 min de navegación
         op.finalizar(inicio.plusSeconds(55 * 60), null);
         return op;
     }
@@ -193,7 +195,15 @@ public class Bootstrap implements ApplicationRunner {
         op.agregarTripulante(piloto);
         op.agregarTripulante(buscar(auxiliar));
         op.agregarTripulante(buscar(guia));
+        op.registrarHorometrosIniciales(Map.of());      // R37: última lectura conocida de cada motor
         return op;
+    }
+
+    /** Lectura actual de cada motor + las horas indicadas. */
+    private static Map<java.util.UUID, java.math.BigDecimal> horometroMas(Embarcacion e, String horas) {
+        Map<java.util.UUID, java.math.BigDecimal> lecturas = new java.util.HashMap<>();
+        e.getMotores().forEach(m -> lecturas.put(m.getId(), m.getHorometroActual().add(new java.math.BigDecimal(horas))));
+        return lecturas;
     }
 
     /** Taquillero del turno de la mañana en cada embarcadero. */

@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 /** Exactamente uno de embarcadero / ayudaId. */
@@ -24,5 +25,6 @@ public record CrearRegistroInfraestructuraRequest(
         @NotBlank @Size(max = 2000) String descripcion,
         @Size(max = 2000) String accionesRealizadas,
         @NotNull Boolean requiereIntervencionExterna,
-        EntidadCompetente entidadCompetente
+        EntidadCompetente entidadCompetente,
+        List<UUID> evidenciaIds          // R34: devueltos por POST /adjuntos?carpeta=infraestructura (PDF o foto)
 ) {}

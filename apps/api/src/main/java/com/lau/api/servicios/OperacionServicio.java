@@ -196,9 +196,7 @@ public class OperacionServicio {
         horario.exigirDentroDeJornada(op.getFechaHoraInicio(), momento, "suspensión");
         MotivoSuspension motivo = new MotivoSuspension(r.causa(), r.detalleEfectivo(), r.autoridad());
         op.registrarHorometrosFinales(lecturas(r.lecturasHorometro()));     // R37
-        op.suspender(momento, motivo);
-        // R48: la embarcación queda suspendida (historial) hasta que se levante la suspensión
-        suspensiones.registrarPorOperacion(op, motivo, momento, buscarPersonal(usuarioId));
+        op.suspender(momento, motivo);   // R48: el viaje queda suspendido (definitivo); no bloquea la embarcación
         liberarTripulacion(op);
         return mapper.toResponse(op);
     }

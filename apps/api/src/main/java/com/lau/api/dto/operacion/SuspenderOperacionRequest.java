@@ -2,6 +2,7 @@ package com.lau.api.dto.operacion;
 
 import com.lau.api.dominio.enums.operacion.CausaSuspension;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
@@ -15,7 +16,8 @@ public record SuspenderOperacionRequest(
         @Size(max = 150) String autoridad,                 // obligatoria si causa = INSTRUCCION_AUTORIDAD
         @Size(max = 1000) String motivo,                   // heredado: se usa como detalle si no viene detalle
         @PastOrPresent Instant momento,
-        List<@Valid LecturaHorometroRequest> lecturasHorometro) {
+        @NotEmpty(message = "Registre la lectura del horómetro de cada motor")
+        List<@Valid LecturaHorometroRequest> lecturasHorometro) {   // R37: obligatorio, una por motor
 
     public String detalleEfectivo() {
         return (detalle == null || detalle.isBlank()) ? motivo : detalle;

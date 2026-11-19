@@ -2,7 +2,6 @@ package com.lau.api.servicios;
 
 import com.lau.api.dominio.Embarcacion;
 import com.lau.api.dominio.MotivoSuspension;
-import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.SuspensionEmbarcacion;
 import com.lau.api.dominio.enums.operacion.EstadoOperacion;
@@ -24,8 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Historial de suspensiones de las embarcaciones (§7.1.7, R48). Cada suspensión es un registro nuevo;
- * mientras haya una vigente, la embarcación no zarpa.
+ * Suspensión de una embarcación que está en el muelle (§7.1.7, R48), p. ej. por orden de una autoridad
+ * antes del zarpe. Cada suspensión es un registro nuevo; mientras haya una vigente, la embarcación no
+ * zarpa. La suspensión de un viaje en curso es otra cosa: queda en la operación y es definitiva.
  */
 @Service
 @Transactional(readOnly = true)
@@ -57,15 +57,7 @@ public class SuspensionServicio {
         exigirSinSuspensionVigente(embarcacionId);
         MotivoSuspension motivo = new MotivoSuspension(r.causa(), r.detalle(), r.autoridad());
         Instant inicio = r.fechaInicio() != null ? r.fechaInicio() : Instant.now();
-        return toResponse(suspensiones.save(new SuspensionEmbarcacion(embarcacion, null, motivo, inicio, quien)));
-    }
-
-    /** La llama OperacionServicio al suspender un viaje en curso: la embarcación queda suspendida. */
-    @Transactional
-    public SuspensionEmbarcacion registrarPorOperacion(Operacion op, MotivoSuspension motivo, Instant momento,
-                                                       Personal quien) {
-        exigirSinSuspensionVigente(op.getEmbarcacion().getId());
-        return suspensiones.save(new SuspensionEmbarcacion(op.getEmbarcacion(), op, motivo, momento, quien));
+        return toResponse(suspensiones.save(new SuspensionEmbarcacion(embarcacion, motivo, inicio, quien)));
     }
 
     @Transactional
@@ -102,7 +94,6 @@ public class SuspensionServicio {
                 s.getId(),
                 s.getEmbarcacion().getId(),
                 s.getEmbarcacion().getNombre(),
-                s.getOperacion() == null ? null : s.getOperacion().getId(),
                 m.getCausa(),
                 m.getCausa().getDescripcion(),
                 m.getDetalle(),

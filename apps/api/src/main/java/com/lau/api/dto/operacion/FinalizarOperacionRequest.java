@@ -17,7 +17,8 @@ public record FinalizarOperacionRequest(
         @Digits(integer = 9, fraction = 1)
         BigDecimal horometroFinal,
 
-        /** Horómetro de cada motor al llegar (R37). Opcional mientras no se defina como obligatorio. */
+        /** Horómetro de cada motor al llegar (R37). Obligatorio: una lectura por motor. */
+        @NotEmpty(message = "Registre la lectura del horómetro de cada motor")
         List<@Valid LecturaHorometroRequest> lecturasHorometro
 ) {
 }

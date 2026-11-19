@@ -255,6 +255,7 @@ public class Operacion extends BaseEntity {
         if (!fin.isAfter(ultimoMomentoRegistrado())) {
             throw new BusinessException("La hora de llegada debe ser posterior al zarpe y a la última parada");
         }
+        exigirHorometroCompleto();
         if (totalUsuariosTransportados() == 0) {
             throw new BusinessException("La cantidad total de usuarios transportados no puede ser igual a 0. Registra los usuarios para poder finalizar.");
         }
@@ -273,6 +274,7 @@ public class Operacion extends BaseEntity {
         if (!momento.isAfter(fechaHoraInicio)) {
             throw new BusinessException("La suspensión debe ser posterior al zarpe");
         }
+        exigirHorometroCompleto();
         this.fechaHoraFin = momento;
         this.motivo = motivo;
         this.motivoSuspension = motivo.texto();
@@ -298,20 +300,34 @@ public class Operacion extends BaseEntity {
         }
     }
 
-    /** Lectura de cada motor al terminar el viaje; actualiza el horómetro del motor. */
+    /**
+     * Lectura de cada motor al terminar el viaje (R37: obligatoria para todos los motores); actualiza el
+     * horómetro del motor.
+     */
     public void registrarHorometrosFinales(Map<UUID, BigDecimal> lecturas) {
-        if (lecturas == null || lecturas.isEmpty()) {
-            return;
-        }
         exigirEnCurso();
-        exigirMotoresDeLaEmbarcacion(lecturas.keySet());
+        Map<UUID, BigDecimal> enviadas = lecturas == null ? Map.of() : lecturas;
+        exigirMotoresDeLaEmbarcacion(enviadas.keySet());
         for (LecturaHorometro l : lecturasHorometro) {
-            BigDecimal fin = lecturas.get(l.getMotor().getId());
-            if (fin != null) {
-                l.registrarFinal(fin);
-                l.getMotor().registrarLectura(fin);
+            if (!enviadas.containsKey(l.getMotor().getId())) {
+                throw new BusinessException("Falta la lectura del horómetro del motor " + l.getMotor().getSerial());
             }
         }
+        for (LecturaHorometro l : lecturasHorometro) {
+            BigDecimal fin = enviadas.get(l.getMotor().getId());
+            l.registrarFinal(fin);
+            l.getMotor().registrarLectura(fin);
+        }
+    }
+
+    /** R37: no se cierra un viaje sin el horómetro inicial y final de cada motor. */
+    private void exigirHorometroCompleto() {
+        if (lecturasHorometro.isEmpty() && !embarcacion.getMotores().isEmpty()) {
+            throw new BusinessException("No se registró el horómetro de los motores al zarpar");
+        }
+        lecturasHorometro.stream().filter(l -> l.getLecturaFinal() == null).findFirst().ifPresent(l -> {
+            throw new BusinessException("Falta la lectura final del horómetro del motor " + l.getMotor().getSerial());
+        });
     }
 
     /** Horas de motor del viaje (suma de los motores); null si falta alguna lectura final. */

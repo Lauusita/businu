@@ -11,7 +11,6 @@ public record SuspensionResponse(
         UUID id,
         UUID embarcacionId,
         Embarcaciones embarcacion,
-        UUID operacionId,                  // solo si interrumpió un viaje
         CausaSuspension causa,
         String causaDescripcion,
         String detalle,

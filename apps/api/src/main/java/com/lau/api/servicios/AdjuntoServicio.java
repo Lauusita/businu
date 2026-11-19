@@ -26,7 +26,10 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
-/** Guarda PDFs en S3 y registra sus metadatos en la tabla adjuntos. */
+/**
+ * Guarda soportes en S3 como PDF y registra sus metadatos en la tabla adjuntos. Se acepta un PDF o una
+ * foto JPG/PNG; la foto se convierte a PDF antes de guardarla, así todo lo almacenado es PDF.
+ */
 @Service
 public class AdjuntoServicio {
 
@@ -36,11 +39,14 @@ public class AdjuntoServicio {
     private final AdjuntoRepositorio adjuntos;
     private final PersonalRepositorio personalRepositorio;
     private final S3Servicio s3;
+    private final ConversorPdf conversor;
 
-    public AdjuntoServicio(AdjuntoRepositorio adjuntos, PersonalRepositorio personalRepositorio, S3Servicio s3) {
+    public AdjuntoServicio(AdjuntoRepositorio adjuntos, PersonalRepositorio personalRepositorio, S3Servicio s3,
+                           ConversorPdf conversor) {
         this.adjuntos = adjuntos;
         this.personalRepositorio = personalRepositorio;
         this.s3 = s3;
+        this.conversor = conversor;
     }
 
     /**
@@ -51,12 +57,15 @@ public class AdjuntoServicio {
      */
     @Transactional
     public Adjunto guardarPdf(String carpeta, MultipartFile archivo, UUID subidoPor) {
-        byte[] bytes = leerPdf(archivo);
+        byte[] original = leerArchivo(archivo);
+        boolean esPdf = esPdf(original);
+        byte[] bytes = esPdf ? original : conversor.imagenAPdf(original, nombreSeguro(archivo));
         String clave = s3.subir(carpeta + "/" + YearMonth.now(COLOMBIA), bytes, "application/pdf", "pdf");
         try {
             Personal personal = personalRepositorio.findById(subidoPor).orElseThrow(() -> new NotFoundException("Personal no encontrado"));
 
-            return adjuntos.save(new Adjunto(clave, nombreSeguro(archivo), "application/pdf",
+            String nombre = esPdf ? nombreSeguro(archivo) : comoPdf(nombreSeguro(archivo));
+            return adjuntos.save(new Adjunto(clave, nombre, "application/pdf",
                     bytes.length, sha256(bytes), personal));
         } catch (RuntimeException e) {
             s3.eliminar(clave);   // si la base falla, no dejar el archivo
@@ -80,9 +89,9 @@ public class AdjuntoServicio {
 
     // ---------------------------------------------------------------- Auxiliares
 
-    private static byte[] leerPdf(MultipartFile archivo) {
+    private static byte[] leerArchivo(MultipartFile archivo) {
         if (archivo == null || archivo.isEmpty()) {
-            throw new BusinessException("El soporte en PDF es obligatorio");
+            throw new BusinessException("El soporte es obligatorio (PDF, JPG o PNG)");
         }
         if (archivo.getSize() > MAX_BYTES) {
             throw new BusinessException("El soporte no puede superar 10 MB");
@@ -90,13 +99,31 @@ public class AdjuntoServicio {
         try {
             byte[] bytes = archivo.getBytes();
             // La extensión y el content-type los decide el navegador: se revisa la firma real del archivo
-            if (bytes.length < 5 || !new String(bytes, 0, 5, StandardCharsets.US_ASCII).equals("%PDF-")) {
-                throw new BusinessException("El soporte debe ser un archivo PDF válido");
+            if (!esPdf(bytes) && !esJpg(bytes) && !esPng(bytes)) {
+                throw new BusinessException("El soporte debe ser un archivo PDF, JPG o PNG válido");
             }
             return bytes;
         } catch (IOException e) {
             throw new UncheckedIOException("No se pudo leer el archivo", e);
         }
+    }
+
+    private static boolean esPdf(byte[] b) {
+        return b.length >= 5 && new String(b, 0, 5, StandardCharsets.US_ASCII).equals("%PDF-");
+    }
+
+    private static boolean esJpg(byte[] b) {
+        return b.length >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF;
+    }
+
+    private static boolean esPng(byte[] b) {
+        return b.length >= 8 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G';
+    }
+
+    /** "foto.jpg" → "foto.pdf". */
+    private static String comoPdf(String nombre) {
+        int punto = nombre.lastIndexOf('.');
+        return (punto > 0 ? nombre.substring(0, punto) : nombre) + ".pdf";
     }
 
     private static String sha256(byte[] bytes) {

@@ -1,6 +1,6 @@
 # Auditoría y ajustes — rama `refactor-ajustes`
 
-Backend BUSINÚ (`apps/api`). Fecha: 18 de noviembre de 2026.
+Backend BUSINÚ (`apps/api`). Fecha: 18 de noviembre de 2026 · **Actualizado el 19 de noviembre** con tus decisiones (sección H).
 Referencias: Anexo Técnico SA-STTM-024-2026 y auditoría de la rama `refactor` (commit `9cbe446`).
 
 **Convenciones**
@@ -97,10 +97,10 @@ Están ordenados por severidad.
 | R22 | Consolidado de la demanda | NO CUMPLE — **pendiente de aprobación** | Propuesta en la sección F |
 | R23–R28 | §4.3 Hoja de vida y mantenimiento | CUMPLE | N-19 corregido |
 | R29–R33 | §4.4 Infraestructura | CUMPLE | — |
-| R34 | §4.4 Evidencias | PARCIAL | Se mantiene el PDF. La relación `evidencias` existe, pero el request de registro no recibe evidencias. Ver la sección G |
+| R34 | §4.4 Evidencias | CUMPLE *(antes PARCIAL)* | Evidencias conectadas al registro (`evidenciaIds`); se almacenan en PDF. Una foto JPG/PNG se convierte a PDF al subirla (sección H) |
 | R35 | §4.5 Fecha, embarcación y cantidad | CUMPLE *(era REGRESIÓN)* | N-12 corregido |
 | R36 | §4.5 Soporte | CUMPLE *(era REGRESIÓN)* | No se modificó la lógica de carga. Probado hasta S3: un PDF válido llega a S3 y, sin acceso, responde 502 controlado. El envío real a S3 no se pudo probar desde este entorno |
-| R37 | §4.5 Consumo asociado a la operación | CUMPLE *(antes POSPUESTO)* | Horómetro por motor y viaje, y consumo entre tanques llenos. Hay una decisión pendiente (sección G) |
+| R37 | §4.5 Consumo asociado a la operación | CUMPLE *(antes POSPUESTO)* | Horómetro por motor y viaje, **obligatorio al finalizar y al suspender** (sección H), y consumo entre tanques llenos |
 | R38 | §4.5 Observaciones | CUMPLE *(era REGRESIÓN)* | Se registran, se guardan y se devuelven en `POST` y `GET /{id}` |
 | R39 | Identificación y rol | CUMPLE | `/auth/me` no expone el hash de la contraseña |
 | R40, R41 | §4.6 Documentos y seguridad social | FUERA DE ALCANCE | Fase posterior |
@@ -109,12 +109,12 @@ Están ordenados por severidad.
 | R45 | §7.1.1 Horario | CUMPLE | De 05:00 a 21:00. La programación de recorridos y los festivos quedan **POSPUESTOS** |
 | R46 | La taquilla registra | CUMPLE | N-13 verificado |
 | R47 | Guía a bordo | CUMPLE | — |
-| R48 | §7.1.7 Suspensión | CUMPLE *(antes PARCIAL)* | Causa tipificada (enum) con detalle y autoridad, más el historial de suspensiones por embarcación |
+| R48 | §7.1.7 Suspensión | CUMPLE *(antes PARCIAL)* | Causa tipificada (enum) con detalle y autoridad. El viaje suspendido queda suspendido de forma definitiva y no bloquea la embarcación (sección H) |
 | R49 | Sábados y domingos | CUMPLE | Lunes a domingo por decisión de negocio (el anexo §7.1.1 dice L-V) |
-| R50 | §7.1.12 Constancia de comunicación | CUMPLE *(antes PARCIAL)* | Solo correo. Falta configurar el servidor SMTP real |
+| R50 | §7.1.12 Constancia de comunicación | CUMPLE *(antes PARCIAL)* | Solo correo. La estructura está lista; el envío real depende de configurar Amazon SES (SMTP) |
 | R51 | §7.2–7.3 Acta, documentos, sustitución | FUERA DE ALCANCE | La sustitución (N-9) se descartó. Los documentos con vigencia se tratarán con §4.6 |
 
-**Resumen:** 40 CUMPLE, 3 PARCIAL (R5, R17 y R34), 2 NO CUMPLE (R4 y R22) y 6 FUERA DE ALCANCE (R40–R44 y R51). No queda ninguna regresión abierta.
+**Resumen:** 41 CUMPLE, 2 PARCIAL (R5 y R17), 2 NO CUMPLE (R4 y R22, este último pendiente por decisión) y 6 FUERA DE ALCANCE (R40–R44 y R51). No queda ninguna regresión abierta.
 
 ### Detalle de lo implementado
 
@@ -306,18 +306,15 @@ La consulta se haría con agregaciones en la base de datos sobre `usuarios`, `us
 
 | Requerimiento | Qué falta |
 |---|---|
-| **R22** | Implementar después de aprobar la sección F |
-| **R34** | La evidencia en PDF existe en la entidad, pero el registro de infraestructura no la recibe. Conectarla sería agregar `evidenciaIds` al request y llamar a `AdjuntoServicio.vincular`, igual que en mantenimiento. No cambia el formato ni el almacenamiento. No lo hice porque pediste no tocar el mecanismo actual: **confírmame si lo conecto** |
+| **R22** | Se deja así por ahora (decisión del 19 de noviembre). La propuesta de la sección F queda como referencia |
 | **R5** | Registro del autor de cada modificación (`@CreatedBy` / `@LastModifiedBy`) |
 | **R17** | Migración V1 con el esquema completo (prerrequisito de producción) |
 | **R4** | Turnos (no pedido en esta fase) |
 | **H-25** | `@Setter` a nivel de clase en `Personal` (bajo) |
 
-**Decisiones de negocio pendientes sobre lo implementado**
+**Configuración pendiente**
 
-1. **R37:** ¿la lectura del horómetro al finalizar o suspender debe ser **obligatoria**? Hoy es opcional. Sin ella, el consumo por hora-motor de ese periodo queda vacío; el consumo por viaje y por hora de navegación sí se calcula.
-2. **R48:** al suspender un viaje, la embarcación queda suspendida hasta que alguien levante la suspensión. ¿Es lo esperado, o una suspensión por clima de pocos minutos no debería bloquear el siguiente zarpe? ¿Quién puede levantar una suspensión ordenada por una autoridad? Hoy pueden el supervisor y el operador.
-3. **R50:** proveedor SMTP real y correo del supervisor (`CORREO_SUPERVISOR`).
+- **R50:** configurar Amazon SES (SMTP): `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT=587`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD`, `CORREO_REMITENTE` (identidad verificada en SES) y `CORREO_SUPERVISOR`. Las propiedades de STARTTLS y autenticación ya están en `application.properties`. Hasta entonces, cada constancia queda FALLIDO y se puede reintentar.
 
 **Pospuestos por decisión expresa**
 
@@ -331,3 +328,24 @@ La consulta se haría con agregaciones en la base de datos sobre `usuarios`, `us
 - R40–R44: §4.6, §4.7 y §4.8.
 - R51.
 - N-9.
+
+---
+
+## H. Ajustes por las decisiones del 19 de noviembre
+
+| Decisión | Cambio | Evidencia |
+|---|---|---|
+| **R22:** dejarlo así | Sin cambios | — |
+| **R34/R36:** todo en PDF; si llega una imagen, convertirla | `AdjuntoServicio` acepta PDF, JPG o PNG, reconociendo el formato por la firma real del archivo. El nuevo `ConversorPdf` (Apache PDFBox 3.0.5) convierte la foto en un PDF de una página tamaño carta, con margen, sin deformar la imagen y orientado según la foto (un JPG se incrusta sin recomprimir). Se guarda en S3 como `application/pdf`, con nombre `.pdf` y SHA-256 del PDF. Aplica a **todos** los soportes: combustible, mantenimiento e infraestructura. Además, las evidencias quedan conectadas al registro de infraestructura (`evidenciaIds` en el request y `evidencias` en la respuesta) | [E] Registro con 2 evidencias → 201, se conservan al consultar; evidencia ya usada o de otra persona → 400; sin evidencias → 201. Carga: JPG válido → convierte y llega a S3 (502 aquí, sin S3); JPG dañado → 400 sin tocar S3; texto → 400; PDF → sigue igual. Conversión probada aparte: JPG 1600×1200 → PDF horizontal de 1 página, PNG 800×1200 → PDF vertical |
+| **R37:** horómetro obligatorio | `lecturasHorometro` es obligatorio (`@NotEmpty`) al finalizar y al suspender, con una lectura por **cada** motor; el dominio también lo exige (`exigirHorometroCompleto`). La lectura al zarpar sigue opcional: si no se envía, se toma la última del motor. El `Bootstrap` registra horómetros en los viajes de prueba | [E] Sin lecturas → 400; con un solo motor → 400 ("Falta la lectura del horómetro del motor …"); con ambos → 200, `horasMotor` 2,0 |
+| **R48:** un viaje suspendido queda suspendido y ya | Suspender un viaje ya **no** crea una suspensión de la embarcación ni bloquea el siguiente zarpe, y no hay nada que levantar. La causa tipificada queda en la operación (`suspension`, `motivoSuspension`), y el historial se consulta con `GET /operaciones?embarcacion=…&estado=SUSPENDIDA`. Se quitó `operacion` de `SuspensionEmbarcacion`. **Se conserva, por decisión tuya**, la suspensión de una embarcación **en el muelle** (`/embarcaciones/{id}/suspensiones`): por ejemplo, una orden de la autoridad antes de zarpar. Bloquea los zarpes hasta que se levanta y deja su historial | [E] Suspender un viaje → el historial de la embarcación queda vacío y la embarcación vuelve a zarpar → 201; el viaje suspendido no se reabre (400). Suspensión en el muelle: bloquea el zarpe hasta levantarla |
+| **R50:** no probar con servidor de correo | No se volvió a probar el envío. Se agregaron las propiedades para Amazon SES (STARTTLS obligatorio y autenticación), que solo se activan cuando se configura `SPRING_MAIL_HOST` | — |
+
+**Pruebas de esta actualización:** `./gradlew clean build` correcto; prueba existente 1/1; batería HTTP **109/109** (sin la sección de correo). La batería usa una hora de referencia fija dentro del horario (14:30, hora de Colombia), porque las validaciones de horario rechazan con razón las horas reales fuera de él.
+
+**Archivos de esta actualización:**
+- **Nuevo:** `ConversorPdf`.
+- **Modificados:** `build.gradle` (PDFBox), `application.properties` (SES), `AdjuntoServicio`, `InfraestructuraServicio`, `OperacionServicio`, `SuspensionServicio`, `Operacion`, `SuspensionEmbarcacion`, `Bootstrap`, `CrearRegistroInfraestructuraRequest`, `RegistroInfraestructuraResponse`, `FinalizarOperacionRequest`, `SuspenderOperacionRequest`, `SuspensionResponse` y `SuspensionEmbarcacionRepositorio`.
+- **Migración futura:** la columna `operacion_id` ya no existe en `suspensiones_embarcacion`.
+
+**Cambio de contrato para el frontend:** `POST /operaciones/{id}/finalizar` y `/suspender` exigen `lecturasHorometro` con todos los motores. `POST /adjuntos` acepta también fotos JPG/PNG.

@@ -8,8 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Suspensión de una embarcación (§7.1.7, R48). Cada suspensión es un registro nuevo: el historial no se
- * sobrescribe. Mientras esté vigente (sin fecha de levantamiento), la embarcación no puede zarpar.
+ * Suspensión de una embarcación en el muelle (§7.1.7, R48). Cada suspensión es un registro nuevo: el
+ * historial no se sobrescribe. Mientras esté vigente (sin fecha de levantamiento), la embarcación no
+ * puede zarpar. Las suspensiones de viajes en curso quedan en la operación, no aquí.
  */
 @Getter
 @Entity
@@ -21,11 +22,6 @@ public class SuspensionEmbarcacion extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "embarcacion_id", nullable = false)
     private Embarcacion embarcacion;
-
-    /** Viaje interrumpido por la suspensión; null si la embarcación estaba en el muelle. */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "operacion_id")
-    private Operacion operacion;
 
     @Embedded
     @AttributeOverrides({
@@ -53,13 +49,9 @@ public class SuspensionEmbarcacion extends BaseEntity {
     @JoinColumn(name = "levantada_por_id")
     private Personal levantadaPor;
 
-    public SuspensionEmbarcacion(Embarcacion embarcacion, Operacion operacion, MotivoSuspension motivo,
-                                 Instant fechaInicio, Personal registradoPor) {
-        if (operacion != null && !operacion.getEmbarcacion().getId().equals(embarcacion.getId())) {
-            throw new BusinessException("La operación no corresponde a la embarcación suspendida");
-        }
+    public SuspensionEmbarcacion(Embarcacion embarcacion, MotivoSuspension motivo, Instant fechaInicio,
+                                 Personal registradoPor) {
         this.embarcacion = embarcacion;
-        this.operacion = operacion;
         this.motivo = motivo;
         this.fechaInicio = fechaInicio;
         this.registradoPor = registradoPor;
