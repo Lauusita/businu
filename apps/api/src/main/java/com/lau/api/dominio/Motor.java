@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,6 +22,7 @@ import lombok.Setter;
 
 @Getter
 @Entity
+@Audited
 @Table(name = "motor")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Motor extends BaseEntity {

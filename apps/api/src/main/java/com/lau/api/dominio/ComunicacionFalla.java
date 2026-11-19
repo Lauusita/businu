@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.dominio.enums.comunicacion.EstadoEnvio;
 import com.lau.api.dominio.enums.comunicacion.TipoReferenciaFalla;
 import com.lau.api.exceptions.BusinessException;
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
+@Audited
 @Table(name = "comunicaciones_falla",
         indexes = @Index(name = "ix_comunicacion_referencia", columnList = "referencia_tipo, referencia_id"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -1,5 +1,7 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import com.lau.api.dominio.enums.operacion.*;
 import com.lau.api.dominio.enums.personal.Rol;
 import com.lau.api.exceptions.BusinessException;
@@ -18,6 +20,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
+@Audited
 @Table(name = "operaciones", indexes = @Index(name = "ix_operaciones_inicio", columnList = "fecha_hora_inicio"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Operacion extends BaseEntity {
@@ -75,6 +78,7 @@ public class Operacion extends BaseEntity {
     private boolean cargueCombustible;
 
     /** Novedades mecánicas del viaje. Vacía = sin novedad. */
+    @NotAudited   // R5: Envers no soporta bien listas de embebidos; el cambio queda como revisión del registro dueño
     @ElementCollection
     @CollectionTable(name = "operacion_condiciones_mecanicas", joinColumns = @JoinColumn(name = "operacion_id"))
     private List<NovedadMecanica> condicionesMecanicas = new ArrayList<>();
@@ -90,6 +94,7 @@ public class Operacion extends BaseEntity {
 
     // ---- Durante y al finalizar ----
 
+    @NotAudited   // R5: Envers no soporta bien listas de embebidos; el cambio queda como revisión del registro dueño
     @ElementCollection
     @CollectionTable(name = "operacion_paradas", joinColumns = @JoinColumn(name = "operacion_id"))
     @OrderColumn(name = "orden")
@@ -109,6 +114,7 @@ public class Operacion extends BaseEntity {
     private MotivoSuspension motivo;
 
     /** Horómetro de cada motor al zarpar y al terminar (R37). */
+    @NotAudited   // R5: Envers no soporta bien listas de embebidos; el cambio queda como revisión del registro dueño
     @ElementCollection
     @CollectionTable(name = "operacion_horometros", joinColumns = @JoinColumn(name = "operacion_id"))
     private List<LecturaHorometro> lecturasHorometro = new ArrayList<>();

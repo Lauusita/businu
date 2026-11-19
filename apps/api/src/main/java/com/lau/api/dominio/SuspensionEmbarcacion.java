@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.exceptions.BusinessException;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
+@Audited
 @Table(name = "suspensiones_embarcacion",
         indexes = @Index(name = "ix_suspension_embarcacion_inicio", columnList = "embarcacion_id, fecha_inicio"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

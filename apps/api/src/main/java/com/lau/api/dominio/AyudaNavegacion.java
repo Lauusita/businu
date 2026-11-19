@@ -1,5 +1,6 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
 import com.lau.api.dominio.enums.seguimiento.*;
 import com.lau.api.dominio.enums.operacion.Embarcaderos;
 import com.lau.api.exceptions.BusinessException;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
+@Audited
 @Table(name = "ayudas_navegacion")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AyudaNavegacion extends BaseEntity {
