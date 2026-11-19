@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BUSINÚ · Peticiones, quejas y reclamos</title>
+<style>
+  :root { --azul: #0b4f71; --texto: #1d2733; --suave: #5b6672; --borde: #cfd6dd; --fondo: #f4f7f9; --error: #b3261e; --ok: #1f6f3f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--texto); background: var(--fondo); line-height: 1.45; }
+  header { background: var(--azul); color: #fff; padding: 20px 16px; }
+  header h1 { margin: 0; font-size: 1.25rem; }
+  header p { margin: 4px 0 0; opacity: .9; font-size: .95rem; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  form, .resultado { background: #fff; border: 1px solid var(--borde); border-radius: 10px; padding: 16px; }
+  label { display: block; font-weight: 600; margin: 14px 0 6px; }
+  .ayuda { font-weight: 400; color: var(--suave); font-size: .9rem; }
+  select, input, textarea { width: 100%; font: inherit; padding: 10px; border: 1px solid var(--borde); border-radius: 8px; background: #fff; color: var(--texto); }
+  textarea { min-height: 140px; resize: vertical; }
+  fieldset { border: 1px dashed var(--borde); border-radius: 8px; margin: 18px 0 0; padding: 4px 12px 12px; }
+  legend { padding: 0 6px; color: var(--suave); font-size: .95rem; }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-weight: 400; }
+  .check input { width: auto; margin-top: 4px; }
+  .trampa { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  button { margin-top: 20px; width: 100%; padding: 14px; font: inherit; font-weight: 700; color: #fff; background: var(--azul); border: 0; border-radius: 8px; cursor: pointer; }
+  button[disabled] { opacity: .6; cursor: wait; }
+  .mensaje { margin-top: 14px; padding: 12px; border-radius: 8px; display: none; }
+  .mensaje.error { display: block; background: #fdecea; color: var(--error); }
+  .resultado { display: none; text-align: center; }
+  .resultado h2 { color: var(--ok); margin-top: 0; }
+  .radicado { font-size: 1.4rem; font-weight: 800; letter-spacing: .5px; padding: 12px; background: var(--fondo); border-radius: 8px; margin: 12px 0; }
+  footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20px 16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>BUSINÚ · Transporte fluvial</h1>
+  <p>Peticiones, quejas, reclamos, sugerencias y felicitaciones</p>
+</header>
+<main>
+  <form id="formulario" novalidate>
+    <label for="tipo">¿Qué desea enviar?</label>
+    <select id="tipo" name="tipo" required>
+      <option value="">Seleccione…</option>
+      <option value="PETICION">Petición</option>
+      <option value="QUEJA">Queja</option>
+      <option value="RECLAMO">Reclamo</option>
+      <option value="SUGERENCIA">Sugerencia</option>
+      <option value="FELICITACION">Felicitación</option>
+    </select>
+
+    <label for="descripcion">Cuéntenos qué pasó <span class="ayuda">(mínimo 10 caracteres)</span></label>
+    <textarea id="descripcion" name="descripcion" maxlength="3000" required></textarea>
+
+    <label for="embarcadero">Embarcadero <span class="ayuda">(opcional)</span></label>
+    <select id="embarcadero" name="embarcadero">
+      <option value="">No aplica / no recuerdo</option>
+      <option value="RANCHO_GRANDE">Rancho Grande</option>
+      <option value="CENTRO_CALLE_22">Centro – Calle 22</option>
+      <option value="CENTRO_VERDE">Centro Verde</option>
+    </select>
+
+    <label for="fechaHecho">Fecha en que ocurrió <span class="ayuda">(opcional)</span></label>
+    <input id="fechaHecho" name="fechaHecho" type="date">
+
+    <fieldset>
+      <legend>Datos de contacto (opcionales, para responderle)</legend>
+      <label for="nombre">Nombre</label>
+      <input id="nombre" name="nombre" maxlength="150" autocomplete="name">
+      <label for="correo">Correo electrónico</label>
+      <input id="correo" name="correo" type="email" maxlength="150" autocomplete="email">
+      <label for="telefono">Teléfono</label>
+      <input id="telefono" name="telefono" type="tel" maxlength="30" autocomplete="tel">
+      <label class="check">
+        <input id="autorizaDatos" name="autorizaDatos" type="checkbox">
+        <span>Autorizo el tratamiento de mis datos personales únicamente para dar respuesta a esta solicitud,
+          de acuerdo con la Ley 1581 de 2012.</span>
+      </label>
+    </fieldset>
+
+    <!-- Campo trampa contra envíos automáticos: las personas no lo ven -->
+    <div class="trampa" aria-hidden="true">
+      <label for="sitioWeb">No llene este campo</label>
+      <input id="sitioWeb" name="sitioWeb" tabindex="-1" autocomplete="off">
+    </div>
+
+    <button id="enviar" type="submit">Enviar</button>
+    <div id="mensaje" class="mensaje" role="alert"></div>
+  </form>
+
+  <section id="resultado" class="resultado" aria-live="polite">
+    <h2>¡Recibimos su solicitud!</h2>
+    <p>Su número de radicado es:</p>
+    <div id="radicado" class="radicado"></div>
+    <p>Guárdelo: con este número puede preguntar por su solicitud en cualquier taquilla.</p>
+  </section>
+</main>
+<footer>Sistema BUSINÚ · Operación piloto en el río Sinú</footer>
+
+<script>
+  const form = document.getElementById('formulario');
+  const mensaje = document.getElementById('mensaje');
+  const boton = document.getElementById('enviar');
+  document.getElementById('fechaHecho').max = new Date().toISOString().slice(0, 10);
+
+  function error(texto) { mensaje.textContent = texto; mensaje.className = 'mensaje error'; }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    mensaje.className = 'mensaje';
+    const v = (id) => document.getElementById(id).value.trim();
+    const datos = {
+      tipo: v('tipo'), descripcion: v('descripcion'), embarcadero: v('embarcadero') || null,
+      fechaHecho: v('fechaHecho') || null, nombre: v('nombre') || null, correo: v('correo') || null,
+      telefono: v('telefono') || null, autorizaDatos: document.getElementById('autorizaDatos').checked,
+      sitioWeb: v('sitioWeb')
+    };
+    if (!datos.tipo) return error('Seleccione qué desea enviar.');
+    if (datos.descripcion.length < 10) return error('Cuéntenos un poco más (mínimo 10 caracteres).');
+    if ((datos.nombre || datos.correo || datos.telefono) && !datos.autorizaDatos)
+      return error('Para dejar sus datos de contacto debe autorizar su tratamiento.');
+
+    boton.disabled = true; boton.textContent = 'Enviando…';
+    try {
+      const r = await fetch('/pqrs/radicar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+      const cuerpo = await r.json().catch(() => ({}));
+      if (r.ok) {
+        document.getElementById('radicado').textContent = cuerpo.radicado;
+        form.style.display = 'none';
+        document.getElementById('resultado').style.display = 'block';
+      } else if (r.status === 429) {
+        error('Ha enviado varias solicitudes seguidas. Intente de nuevo en un rato.');
+      } else {
+        const detalle = cuerpo.errors ? Object.values(cuerpo.errors).join(' ') : (cuerpo.detail || '');
+        error('No se pudo enviar. ' + detalle);
+      }
+    } catch (_) {
+      error('No hay conexión. Intente de nuevo.');
+    } finally {
+      boton.disabled = false; boton.textContent = 'Enviar';
+    }
+  });
+</script>
+</body>
+</html>

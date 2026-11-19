@@ -25,6 +25,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.apache.pdfbox:pdfbox:3.0.5'                           // R34/R36: imágenes JPG/PNG → PDF
+    implementation 'org.thymeleaf:thymeleaf'                                    // §4.7/§4.8: plantillas HTML de los PDF
+    implementation 'io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.28'        // §4.7/§4.8: HTML → PDF sin navegador
+    implementation 'org.apache.poi:poi-ooxml:5.4.1'                             // §4.8: exportación a Excel
     implementation 'org.springframework.boot:spring-boot-starter-mail'          // R50: constancia de comunicación de fallas
 
     implementation 'org.springframework.boot:spring-boot-starter-flyway'

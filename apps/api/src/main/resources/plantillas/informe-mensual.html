@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title th:text="'Informe mensual de operación ' + ${informe.periodo}">Informe mensual</title>
+<style>
+  @page { size: letter landscape; margin: 16mm 14mm 18mm 14mm;
+          @bottom-left { content: "BUSINÚ · Informe mensual de operación"; font-size: 8pt; color: #666; font-family: Helvetica, Arial, sans-serif; }
+          @bottom-right { content: "Página " counter(page) " de " counter(pages); font-size: 8pt; color: #666; font-family: Helvetica, Arial, sans-serif; } }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 9pt; color: #1d2733; }
+  h1 { font-size: 17pt; color: #0b4f71; margin: 0 0 2mm 0; }
+  h2 { font-size: 11.5pt; color: #0b4f71; border-bottom: 1px solid #0b4f71; padding-bottom: 1mm; margin: 6mm 0 2mm 0; page-break-after: avoid; }
+  .sub { color: #5b6672; margin-bottom: 4mm; }
+  .borrador { color: #b3261e; font-weight: bold; font-size: 11pt; border: 1px solid #b3261e; padding: 2mm; margin-bottom: 4mm; text-align: center; }
+  table { width: 100%; border-collapse: collapse; margin: 1mm 0 2mm 0; page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  th { background: #e8eef2; text-align: left; font-weight: bold; }
+  th, td { border: 0.5pt solid #b9c3cb; padding: 1.2mm 1.5mm; vertical-align: top; }
+  td.n, th.n { text-align: right; }
+  .kpis td { border: none; padding: 0 3mm 2mm 0; width: 16%; }
+  .kpi { border: 0.5pt solid #b9c3cb; padding: 2mm; }
+  .kpi b { display: block; font-size: 14pt; color: #0b4f71; }
+  .texto { white-space: pre-wrap; line-height: 1.35; }
+  .vacio { color: #5b6672; font-style: italic; }
+  .pie { color: #5b6672; font-size: 7.5pt; margin-top: 6mm; }
+</style>
+</head>
+<body>
+<h1>Informe mensual de operación</h1>
+<div class="sub">
+  <span th:text="'Periodo: ' + ${d.desde} + ' a ' + ${d.hasta}"/> ·
+  <span th:text="'Estado: ' + ${informe.estado}"/>
+  <span th:if="${informe.fechaCierre != null}" th:text="' · Cerrado el ' + ${fmt.fechaHora(informe.fechaCierre)} + ' por ' + ${informe.cerradoPor}"/>
+  <span th:if="${informe.fechaEntrega != null}" th:text="' · Entregado el ' + ${fmt.fechaHora(informe.fechaEntrega)}"/>
+</div>
+<div class="borrador" th:if="${informe.estado.name() == 'BORRADOR'}">BORRADOR · las cifras se calculan en vivo y pueden cambiar hasta el cierre</div>
+
+<h2>1. Resumen de las actividades desarrolladas</h2>
+<div class="texto" th:text="${informe.resumenActividades}"/>
+<div class="vacio" th:if="${#strings.isEmpty(informe.resumenActividades)}">Pendiente de redactar.</div>
+
+<h2>2. Registro y consolidado de viajes realizados</h2>
+<table class="kpis"><tr>
+  <td><div class="kpi">Viajes<b th:text="${d.viajes.total}">0</b></div></td>
+  <td><div class="kpi">Finalizados<b th:text="${d.viajes.finalizados}">0</b></div></td>
+  <td><div class="kpi">Suspendidos<b th:text="${d.viajes.suspendidos}">0</b></div></td>
+  <td><div class="kpi">En curso<b th:text="${d.viajes.enCurso}">0</b></div></td>
+  <td><div class="kpi">Horas de navegación<b th:text="${fmt.numero(d.viajes.horasNavegacion)}">0</b></div></td>
+  <td><div class="kpi">Pasajeros<b th:text="${d.demanda.totalUsuarios}">0</b></div></td>
+</tr></table>
+<table>
+  <tr><th>Origen</th><th>Destino</th><th class="n">Viajes</th><th class="n">Pasajeros</th></tr>
+  <tr th:each="r : ${d.viajes.porRecorrido}"><td th:text="${r.origen}"/><td th:text="${r.destino}"/><td class="n" th:text="${r.viajes}"/><td class="n" th:text="${r.pasajeros}"/></tr>
+</table>
+
+<h2>3 y 4. Pasajeros transportados y caracterización de los usuarios</h2>
+<table>
+  <tr><th>Franja</th><th class="n">Usuarios</th><th class="n">Mujeres</th><th class="n">Hombres</th>
+      <th:block th:each="g : ${d.demanda.porGrupoEtario}"><th class="n" th:text="${g.key}"/></th:block></tr>
+  <tr th:each="f : ${d.demanda.porFranjaHoraria}">
+    <td th:text="${f.franja + ' (' + f.desde + '-' + f.hasta + ')'}"/>
+    <td class="n" th:text="${f.usuarios}"/>
+    <td class="n" th:text="${fmt.valor(f.porSexo, 'FEMENINO')}"/><td class="n" th:text="${fmt.valor(f.porSexo, 'MASCULINO')}"/>
+    <th:block th:each="g : ${f.porGrupoEtario}"><td class="n" th:text="${g.value}"/></th:block>
+  </tr>
+  <tr><th>Total</th><th class="n" th:text="${d.demanda.totalUsuarios}"/>
+      <th class="n" th:text="${fmt.valor(d.demanda.porSexo, 'FEMENINO')}"/><th class="n" th:text="${fmt.valor(d.demanda.porSexo, 'MASCULINO')}"/>
+      <th:block th:each="g : ${d.demanda.porGrupoEtario}"><th class="n" th:text="${g.value}"/></th:block></tr>
+</table>
+<p th:text="'Incluye ' + ${d.demanda.suspendidos.usuarios} + ' usuarios de ' + ${d.demanda.suspendidos.viajes} + ' viaje(s) suspendido(s). Promedio por viaje: ' + ${fmt.numero(d.demanda.promedioPorViaje)} + '.'"/>
+<table>
+  <tr><th>Origen</th><th>Destino</th><th class="n">Usuarios</th></tr>
+  <tr th:each="x : ${d.demanda.origenDestino}"><td th:text="${x.origen}"/><td th:text="${x.destino}"/><td class="n" th:text="${x.usuarios}"/></tr>
+</table>
+
+<h2>5. Registro de combustible y consumo</h2>
+<p th:text="${d.combustible.abastecimientos} + ' abastecimientos · ' + ${fmt.numero(d.combustible.galones)} + ' galones · $' + ${fmt.numero(d.combustible.valorTotal)}"/>
+<table th:if="${consumo != null and !consumo.filas.isEmpty()}">
+  <tr><th th:each="c : ${consumo.columnas}" th:text="${c}"/></tr>
+  <tr th:each="f : ${consumo.filas}"><td th:each="v : ${f}" th:text="${fmt.celda(v)}"/></tr>
+</table>
+<div class="vacio" th:if="${consumo == null or consumo.filas.isEmpty()}">Sin periodos de consumo cerrados en el mes (se calculan entre dos tanques llenos).</div>
+
+<h2>6. Estado y novedades de las embarcaciones</h2>
+<table>
+  <tr><th>Embarcación</th><th>Estado</th><th>Suspendida en muelle</th><th class="n">Viajes</th><th class="n">Novedades mecánicas</th><th class="n">Mantenimientos</th></tr>
+  <tr th:each="e : ${d.embarcaciones}"><td th:text="${e.nombre}"/><td th:text="${e.estado}"/><td th:text="${e.suspendida ? 'Sí' : 'No'}"/>
+      <td class="n" th:text="${e.viajes}"/><td class="n" th:text="${e.novedadesMecanicas}"/><td class="n" th:text="${e.mantenimientos}"/></tr>
+</table>
+
+<h2>7. Mantenimientos preventivos y correctivos realizados</h2>
+<table th:if="${!mantenimientos.filas.isEmpty()}">
+  <tr><th th:each="c : ${mantenimientos.columnas}" th:text="${c}"/></tr>
+  <tr th:each="f : ${mantenimientos.filas}"><td th:each="v : ${f}" th:text="${fmt.celda(v)}"/></tr>
+</table>
+<div class="vacio" th:if="${mantenimientos.filas.isEmpty()}">No se registraron mantenimientos en el mes.</div>
+
+<h2>8. Alertas o necesidades de mantenimiento identificadas</h2>
+<ul th:if="${!d.alertasMantenimiento.isEmpty()}"><li th:each="a : ${d.alertasMantenimiento}" th:text="${a}"/></ul>
+<div class="vacio" th:if="${d.alertasMantenimiento.isEmpty()}">Sin alertas.</div>
+
+<h2>9. Estado y novedades de los embarcaderos y ayudas a la navegación</h2>
+<p th:text="${d.infraestructura.registrosDelMes} + ' registros en el mes · ' + ${d.infraestructura.abiertos} + ' casos abiertos a la fecha · ' + ${d.infraestructura.pendientesDeComunicar} + ' pendientes de comunicar al supervisor'"/>
+<table th:if="${!d.infraestructura.porTipo.isEmpty()}">
+  <tr><th>Tipo de registro</th><th class="n">Cantidad</th></tr>
+  <tr th:each="t : ${d.infraestructura.porTipo}"><td th:text="${t.key}"/><td class="n" th:text="${t.value}"/></tr>
+</table>
+
+<h2>10. Relación del personal destinado a la operación</h2>
+<table>
+  <tr><th th:each="c : ${personal.columnas}" th:text="${c}"/></tr>
+  <tr th:each="f : ${personal.filas}"><td th:each="v : ${f}" th:text="${fmt.texto(v)}"/></tr>
+</table>
+
+<h2>11. Soportes de afiliación al Sistema de Seguridad Social</h2>
+<p th:text="${d.seguridadSocial.conPlanilla} + ' de ' + ${d.seguridadSocial.personalActivo} + ' personas con contrato activo tienen cargada la planilla PILA del mes.'"/>
+<div th:if="${!d.seguridadSocial.sinPlanilla.isEmpty()}">Sin planilla: <span th:text="${#strings.listJoin(d.seguridadSocial.sinPlanilla, '; ')}"/></div>
+
+<h2>12. Consolidado de las bitácoras de viaje</h2>
+<table th:if="${!bitacoras.filas.isEmpty()}">
+  <tr><th th:each="c : ${bitacoras.columnas}" th:text="${c}"/></tr>
+  <tr th:each="f : ${bitacoras.filas}"><td th:each="v : ${f}" th:text="${fmt.celda(v)}"/></tr>
+</table>
+<div class="vacio" th:if="${bitacoras.filas.isEmpty()}">Sin viajes en el mes.</div>
+<p class="pie">El detalle completo de cada bitácora (tripulación, verificación, novedades, horómetros) está en la exportación de viajes.</p>
+
+<h2>13. Novedades operacionales, mecánicas, climáticas o de seguridad</h2>
+<table th:if="${!novedades.filas.isEmpty()}">
+  <tr><th th:each="c : ${novedades.columnas}" th:text="${c}"/></tr>
+  <tr th:each="f : ${novedades.filas}"><td th:each="v : ${f}" th:text="${fmt.texto(v)}"/></tr>
+</table>
+<div class="vacio" th:if="${novedades.filas.isEmpty()}">Sin novedades en el mes.</div>
+
+<h2>14. Peticiones, quejas, reclamos y demás manifestaciones</h2>
+<p th:text="${d.pqrs.total} + ' recibidas en el mes.'"/>
+<table th:if="${!pqrs.filas.isEmpty()}">
+  <tr><th th:each="c : ${pqrs.columnas}" th:text="${c}"/></tr>
+  <tr th:each="f : ${pqrs.filas}"><td th:each="v : ${f}" th:text="${fmt.texto(v)}"/></tr>
+</table>
+
+<h2>15. Conclusiones</h2>
+<div class="texto" th:text="${informe.conclusiones}"/>
+<div class="vacio" th:if="${#strings.isEmpty(informe.conclusiones)}">Pendiente de redactar.</div>
+
+<h2>16. Recomendaciones técnicas y operativas</h2>
+<div class="texto" th:text="${informe.recomendaciones}"/>
+<div class="vacio" th:if="${#strings.isEmpty(informe.recomendaciones)}">Pendiente de redactar.</div>
+
+<h2>Otros documentos y soportes</h2>
+<div class="texto" th:text="${informe.otrosDocumentos}"/>
+<div class="vacio" th:if="${#strings.isEmpty(informe.otrosDocumentos)}">Ninguno.</div>
+
+<p class="pie" th:if="${informe.huellaDatos != null}" th:text="'Huella SHA-256 de las cifras congeladas: ' + ${informe.huellaDatos}"/>
+<p class="pie" th:text="'Generado el ' + ${fmt.fechaHora(d.generadoEn)} + ' (hora de Colombia) por el sistema BUSINÚ.'"/>
+</body>
+</html>

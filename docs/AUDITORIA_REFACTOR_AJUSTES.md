@@ -1,6 +1,6 @@
 # Auditoría y ajustes — rama `refactor-ajustes`
 
-Backend BUSINÚ (`apps/api`). Fecha: 18 de noviembre de 2026 · **Actualizado el 19 de noviembre** con tus decisiones (sección H) y con la rama `refactor-ajustes-2` (sección I).
+Backend BUSINÚ (`apps/api`). Fecha: 18 de noviembre de 2026 · **Actualizado el 19 de noviembre** con tus decisiones (sección H) con la rama `refactor-ajustes-2` (sección I) y con la rama `fase-4-6-a-4-8` (sección J).
 Referencias: Anexo Técnico SA-STTM-024-2026 y auditoría de la rama `refactor` (commit `9cbe446`).
 
 **Convenciones**
@@ -103,9 +103,9 @@ Están ordenados por severidad.
 | R37 | §4.5 Consumo asociado a la operación | CUMPLE *(antes POSPUESTO)* | Horómetro por motor y viaje, **obligatorio al finalizar y al suspender** (sección H), y consumo entre tanques llenos |
 | R38 | §4.5 Observaciones | CUMPLE *(era REGRESIÓN)* | Se registran, se guardan y se devuelven en `POST` y `GET /{id}` |
 | R39 | Identificación y rol | CUMPLE | `/auth/me` no expone el hash de la contraseña |
-| R40, R41 | §4.6 Documentos y seguridad social | FUERA DE ALCANCE | Fase posterior |
-| R42, R43 | §4.7 Informe mensual y PQRS | FUERA DE ALCANCE | Fase posterior |
-| R44 | §4.8 Exportación | FUERA DE ALCANCE | Fase posterior |
+| R40, R41 | §4.6 Documentos y seguridad social | CUMPLE | Documentación por persona en S3 (`documentacion/{ROL}/{cédula}/{TIPO}/`), requisitos faltantes por rol y planilla PILA por mes (sección J) |
+| R42, R43 | §4.7 Informe mensual y PQRS | CUMPLE | Informe con las 16 secciones, cierre con cifras congeladas, entrega y PDF; PQRS por formulario público con QR y gestión del supervisor (sección J) |
+| R44 | §4.8 Exportación | CUMPLE | Excel y CSV de 8 conjuntos y Excel completo; hoja de vida e informe en PDF (sección J) |
 | R45 | §7.1.1 Horario | CUMPLE | De 05:00 a 21:00. La programación de recorridos y los festivos quedan **POSPUESTOS** |
 | R46 | La taquilla registra | CUMPLE | N-13 verificado |
 | R47 | Guía a bordo | CUMPLE | — |
@@ -114,7 +114,7 @@ Están ordenados por severidad.
 | R50 | §7.1.12 Constancia de comunicación | CUMPLE *(antes PARCIAL)* | Solo correo. La estructura está lista; el envío real depende de configurar Amazon SES (SMTP) |
 | R51 | §7.2–7.3 Acta, documentos, sustitución | FUERA DE ALCANCE | La sustitución (N-9) se descartó. Los documentos con vigencia se tratarán con §4.6 |
 
-**Resumen (con la rama `refactor-ajustes-2`):** 44 CUMPLE y 7 FUERA DE ALCANCE (R4, R40–R44 y R51). No queda ningún requerimiento parcial ni no cumplido, ni ninguna regresión abierta.
+**Resumen (con la rama `fase-4-6-a-4-8`):** 49 CUMPLE y 2 FUERA DE ALCANCE (R4 y R51). No queda ningún requerimiento parcial ni no cumplido, ni ninguna regresión abierta.
 
 ### Detalle de lo implementado
 
@@ -321,7 +321,6 @@ La consulta se haría con agregaciones en la base de datos sobre `usuarios`, `us
 
 **Fuera de alcance de esta fase**
 
-- R40–R44: §4.6, §4.7 y §4.8.
 - R51.
 - N-9.
 
@@ -445,3 +444,103 @@ El rebote que describes es típico cuando SES y el correo de cPanel se pisan en 
 - **(b)** Al arrancar, crear el supervisor solo si no existe ninguno, con datos tomados de variables de entorno.
 
 Cualquiera de las dos se integra bien con la guía y las contraseñas preestablecidas que vas a entregar a los contratistas.
+
+---
+
+## J. Rama `fase-4-6-a-4-8`: §4.6, §4.7 y §4.8 (19 de noviembre)
+
+Rama creada desde `main` en `924a102`, que ya incluye los PR #2 y #3.
+
+### Decisiones aplicadas
+
+| Tema | Decisión |
+|---|---|
+| Documentación | Un PDF por documento, en una carpeta por persona identificada por su cédula. Sin control de vencimientos ni bloqueo del zarpe: la revisión previa la hacen los contratistas |
+| Informe mensual | Endpoint calculado más una entidad que se cierra y se entrega |
+| PQRS | Solo por un formulario público con un único QR. El personal no puede crearlas ni modificarlas; solo el supervisor las consulta y registra su gestión |
+| Exportaciones | Excel y CSV para los datos, y PDF con plantillas HTML |
+
+### §4.6 Documentación del personal — `/personal/{id}/documentos` (solo SUPERVISOR)
+
+- **Subir un documento:** `POST` multipart con `archivo` (PDF, JPG o PNG; las fotos se convierten a PDF), `tipo`, `periodo` (`yyyy-MM`, solo planilla PILA) y `observaciones`.
+- **Ruta en S3:** `documentacion/{ROL}/{cédula}/{TIPO}/{año-mes}/{id}.pdf`. Cada archivo tiene su SHA-256.
+- **Tipos** (§7.3.1): cédula, RUT, hoja de vida en formato de función pública, certificado académico, certificados de experiencia, licencia o permiso de tripulante (solo operadores), certificados de competencia, afiliación a seguridad social, planilla PILA (por mes) y otro.
+- **Reemplazos:** al subir un documento del mismo tipo (y mes, si es periódico), el anterior queda en el **historial**; no se borra.
+- **`GET`:** devuelve los documentos vigentes (`?historial=true` incluye los anteriores), los **requisitos faltantes** según el rol y los meses con planilla PILA.
+- **`GET /{documentoId}/url`:** enlace temporal de 5 minutos al PDF.
+
+### §4.7 PQRS — formulario público con un único QR
+
+- **Página: `GET /pqrs`**, la URL que va en el QR, sin token. Es un HTML de un solo archivo pensado para celular y servido por la API.
+  - **Campos:** tipo, descripción, embarcadero, fecha del hecho y contacto opcional con la autorización de datos (Ley 1581).
+  - **Respuesta:** al enviar, muestra el **número de radicado** (`PQRS-2026-000001`, tomado de una secuencia de la base).
+- **Envío: `POST /pqrs/radicar`**, público.
+  - **Protecciones contra abuso:** un campo trampa invisible para robots y un límite de 5 envíos por hora por IP, con respuesta 429. La IP se toma del último valor de `X-Forwarded-For`, que es el que no puede falsificar el cliente.
+  - **Inmutabilidad:** el texto del ciudadano no se puede modificar.
+- **Gestión: `/pqrs/gestion`**, solo SUPERVISOR. Permite listar, ver y gestionar: `RECIBIDA` → `EN_GESTION` → `RESPONDIDA` (exige respuesta) o `TRASLADADA` (exige entidad) → `CERRADA` (no se reabre). Cada paso queda en el historial (R5).
+
+### §4.7 Informe mensual — `/informes/mensual/{yyyy-MM}` (solo SUPERVISOR)
+
+| Método y ruta | Uso |
+|---|---|
+| `GET` | Estado, texto del supervisor y cifras: **en vivo** mientras es borrador, **congeladas** después del cierre |
+| `PUT` | Redacta el resumen de actividades, las conclusiones, las recomendaciones y otros documentos (solo en BORRADOR) |
+| `POST /cerrar` | Solo cuando el mes ya terminó y con el texto completo. Congela las cifras (JSON más su huella SHA-256) y bloquea la edición |
+| `POST /entregar` | Marca el informe como entregado (fecha y quién lo entregó) |
+| `GET /pdf` | El informe en PDF con las **16 secciones del §4.7**. En borrador lleva la marca "BORRADOR" |
+
+**Cifras que incluye:**
+- Viajes por estado y por recorrido.
+- Pasajeros y su caracterización por franja, con sexo y edad (R22).
+- Combustible y consumo entre tanques llenos.
+- Estado de las embarcaciones.
+- Mantenimientos y alertas: recomendaciones, novedades graves y próximas intervenciones.
+- Infraestructura.
+- Relación del personal.
+- Planillas PILA del mes: quién la tiene y quién no.
+- Bitácoras, novedades y PQRS.
+
+**Dónde está el PDF:** se genera a partir de las cifras congeladas cada vez que se pide; no se guarda en S3. Por eso siempre muestra exactamente lo que se cerró.
+
+### §4.8 Exportaciones — `/exportaciones/{conjunto}` (solo SUPERVISOR)
+
+- **Conjuntos:** `viajes`, `pasajeros` (con sexo, grupo etario y destino en columnas), `combustible`, `consumo`, `mantenimientos`, `novedades` (mecánicas, operacionales, clima, suspensiones e infraestructura), `personal`, `pqrs` y `completo` (un Excel con las 8 hojas).
+- **Parámetros:** `desde`, `hasta` (por defecto, el mes en curso) y `formato=xlsx|csv`.
+- **CSV:** en UTF-8 con BOM, separador `;` y decimales con coma, para que Excel en español lo abra bien.
+- **Excel:** encabezado fijo con filtros.
+- **Datos personales:** las exportaciones **no incluyen datos de contacto** del personal ni de las PQRS (Ley 1581).
+- **Hoja de vida en PDF:** `GET /embarcaciones/{id}/hoja-de-vida/pdf`.
+
+**Tecnología** (Puppeteer sin navegador): Thymeleaf para las plantillas HTML, OpenHTMLtoPDF 1.1.28 para convertirlas a PDF (sobre PDFBox 3) y Apache POI 5.4.1 para Excel. No requiere Chromium en App Runner.
+
+### Migración V2
+
+`V2__documentacion_pqrs_informe.sql` contiene:
+- **Tablas:** `documentos_personal`, `pqrs` e `informes_mensuales`, con sus tablas `*_aud`.
+- **Secuencia:** `pqrs_consecutivo_seq`.
+
+Se generó a partir del esquema real de Hibernate. La aplicación arranca con Flyway V1 + V2 y `validate` sin diferencias.
+
+### Pruebas
+
+| Prueba | Resultado |
+|---|---|
+| `./gradlew clean build` y la prueba existente | Correctos (1/1) |
+| Baterías de regresión | 109/109 y 34/34 |
+| **Batería de esta fase** | **69/69** |
+
+**Cómo se probó S3 sin AWS:** con un servidor S3 local (moto) en este entorno. Así se probaron de punta a punta la subida, la ruta de documentación, la conversión de foto a PDF y la descarga por enlace temporal.
+
+**PDF:** el informe en borrador, el informe entregado y la hoja de vida se generaron y se revisaron visualmente.
+
+**Errores encontrados y corregidos durante las pruebas:**
+1. La plantilla usaba una expresión SpEL que no existe en Thymeleaf independiente (OGNL). Daba 500 al generar un PDF con filas.
+2. `autorizaDatos` ausente era rechazado por Jackson 3 (`boolean` primitivo).
+3. Las columnas de sexo del PDF salían vacías porque las claves del mapa eran enums.
+
+### Pendientes y notas
+
+- **Primer usuario en producción:** la opción recomendada es crearlo al arrancar desde variables de entorno, solo si no existe ningún supervisor. Queda por implementar cuando lo confirmes.
+- **Consulta pública del estado de una PQRS por radicado:** no se implementó. Hoy el ciudadano pregunta en la taquilla. Si se quiere, necesita un código de verificación además del radicado, para que nadie consulte PQRS ajenas.
+- **Notificación al ciudadano por correo** cuando su PQRS sea respondida: se puede hacer cuando SES esté configurado.
+- **Límite de envíos de PQRS:** vive en memoria. Basta con una sola instancia de App Runner; con varias instancias, cada una lleva su propia cuenta.
