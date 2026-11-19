@@ -5,31 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BUSINÚ · Peticiones, quejas y reclamos</title>
 <style>
-  :root { --azul: #0b4f71; --texto: #1d2733; --suave: #5b6672; --borde: #cfd6dd; --fondo: #f4f7f9; --error: #b3261e; --ok: #1f6f3f; }
+  :root {
+    --dorado: #EBC313;
+    --amarillo: #FEE72B;
+    --azul-noche: #051469;
+    --azul: #013996;
+    --azul-claro: #0A6EDC;
+    --blanco: #FFFFFF;
+    --negro: #000000;
+    --borde: #0A6EDC;
+    --fondo: #FFFFFF;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--texto); background: var(--fondo); line-height: 1.45; }
-  header { background: var(--azul); color: #fff; padding: 20px 16px; }
-  header h1 { margin: 0; font-size: 1.25rem; }
-  header p { margin: 4px 0 0; opacity: .9; font-size: .95rem; }
+  body {  display: flex; flex-direction: column; margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--negro); background: var(--fondo); line-height: 1.45; }
+  header { background: var(--azul-noche); color: var(--blanco); padding: 20px 16px; border-bottom: 4px solid var(--dorado); }
+  header h1 { margin: 0; font-size: 1.25rem; text-align: center }
+  header p { margin: 4px 0 0; color: var(--amarillo); font-size: .95rem; text-align: center}
   main { max-width: 640px; margin: 0 auto; padding: 16px; }
-  form, .resultado { background: #fff; border: 1px solid var(--borde); border-radius: 10px; padding: 16px; }
-  label { display: block; font-weight: 600; margin: 14px 0 6px; }
-  .ayuda { font-weight: 400; color: var(--suave); font-size: .9rem; }
-  select, input, textarea { width: 100%; font: inherit; padding: 10px; border: 1px solid var(--borde); border-radius: 8px; background: #fff; color: var(--texto); }
+  form, .resultado { background: var(--blanco); border: 1px solid var(--borde); border-top: 4px solid var(--azul); border-radius: 10px; padding: 16px; }
+  label { display: block; font-weight: 600; margin: 14px 0 6px; color: var(--azul-noche); }
+  .ayuda { font-weight: 400; color: var(--azul); font-size: .9rem; }
+  select, input, textarea { width: 100%; font: inherit; padding: 10px; border: 1px solid var(--borde); border-radius: 8px; background: var(--blanco); color: var(--negro); }
+  select:focus, input:focus, textarea:focus { outline: 3px solid var(--amarillo); outline-offset: 1px; border-color: var(--azul); }
   textarea { min-height: 140px; resize: vertical; }
-  fieldset { border: 1px dashed var(--borde); border-radius: 8px; margin: 18px 0 0; padding: 4px 12px 12px; }
-  legend { padding: 0 6px; color: var(--suave); font-size: .95rem; }
-  .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-weight: 400; }
-  .check input { width: auto; margin-top: 4px; }
+  fieldset { border: 1px dashed var(--azul-claro); border-radius: 8px; margin: 18px 0 0; padding: 4px 12px 12px; }
+  legend { padding: 0 6px; color: var(--azul); font-size: .95rem; font-weight: 600; }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-weight: 400; color: var(--negro); }
+  .check input { width: auto; margin-top: 4px; accent-color: var(--azul); }
   .trampa { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
-  button { margin-top: 20px; width: 100%; padding: 14px; font: inherit; font-weight: 700; color: #fff; background: var(--azul); border: 0; border-radius: 8px; cursor: pointer; }
+  button { margin-top: 20px; width: 100%; padding: 14px; font: inherit; font-weight: 700; color: var(--blanco); background: var(--azul-noche); border: 0; border-bottom: 3px solid var(--dorado); border-radius: 8px; cursor: pointer; }
+  button:hover { background: var(--azul); }
+  button:focus-visible { outline: 3px solid var(--amarillo); outline-offset: 2px; }
   button[disabled] { opacity: .6; cursor: wait; }
   .mensaje { margin-top: 14px; padding: 12px; border-radius: 8px; display: none; }
-  .mensaje.error { display: block; background: #fdecea; color: var(--error); }
+  .mensaje.error { display: block; background: var(--amarillo); color: var(--azul-noche); border-left: 5px solid var(--dorado); font-weight: 600; }
   .resultado { display: none; text-align: center; }
-  .resultado h2 { color: var(--ok); margin-top: 0; }
-  .radicado { font-size: 1.4rem; font-weight: 800; letter-spacing: .5px; padding: 12px; background: var(--fondo); border-radius: 8px; margin: 12px 0; }
-  footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20px 16px; }
+  .resultado h2 { color: var(--azul); margin-top: 0; }
+  .radicado { font-size: 1.4rem; font-weight: 800; letter-spacing: .5px; padding: 12px; color: var(--azul-noche); background: var(--amarillo); border: 2px solid var(--dorado); border-radius: 8px; margin: 12px 0; }
+  footer { text-align: center; color: var(--azul); font-size: .85rem; padding: 20px 16px; border-top: 1px solid var(--azul-claro); }
 </style>
 </head>
 <body>

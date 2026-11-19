@@ -44,7 +44,7 @@ public class MantenimientoMapper {
                 motor == null ? null : new MantenimientoResponse.MotorResumen(motor.getId(), motor.getSerial(),
                         motor.getModelo()),
                 m.getTipo(),
-                m.getSistema(),
+                m.getSistema().getDescripcion(),
                 m.getFechaIntervencion(),
                 m.getDescripcionActividades(),
                 m.getEjecutadoPor(),
@@ -52,7 +52,7 @@ public class MantenimientoMapper {
                 m.getRegistradoPor().nombreCompleto(),
                 m.isSinRepuestos(),
                 m.getRepuestos().stream()
-                        .map(r -> new MantenimientoResponse.Repuesto(r.getItem(), r.getDescripcion(), r.getCantidad(),
+                        .map(r -> new MantenimientoResponse.Repuesto(r.getItem().getDescripcion(), r.getDescripcion(), r.getCantidad(),
                                 r.getUnidad(), r.getCosto()))
                         .toList(),
                 m.isSinNovedades(),

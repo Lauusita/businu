@@ -5,24 +5,25 @@
 <title th:text="'Informe mensual de operación ' + ${informe.periodo}">Informe mensual</title>
 <style>
   @page { size: letter landscape; margin: 16mm 14mm 18mm 14mm;
-          @bottom-left { content: "BUSINÚ · Informe mensual de operación"; font-size: 8pt; color: #666; font-family: Helvetica, Arial, sans-serif; }
-          @bottom-right { content: "Página " counter(page) " de " counter(pages); font-size: 8pt; color: #666; font-family: Helvetica, Arial, sans-serif; } }
-  body { font-family: Helvetica, Arial, sans-serif; font-size: 9pt; color: #1d2733; }
-  h1 { font-size: 17pt; color: #0b4f71; margin: 0 0 2mm 0; }
-  h2 { font-size: 11.5pt; color: #0b4f71; border-bottom: 1px solid #0b4f71; padding-bottom: 1mm; margin: 6mm 0 2mm 0; page-break-after: avoid; }
-  .sub { color: #5b6672; margin-bottom: 4mm; }
-  .borrador { color: #b3261e; font-weight: bold; font-size: 11pt; border: 1px solid #b3261e; padding: 2mm; margin-bottom: 4mm; text-align: center; }
+    @bottom-left { content: "BUSINÚ · Informe mensual de operación"; font-size: 8pt; color: #013996; font-family: Helvetica, Arial, sans-serif; }
+    @bottom-right { content: "Página " counter(page) " de " counter(pages); font-size: 8pt; color: #013996; font-family: Helvetica, Arial, sans-serif; } }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 9pt; color: #000000; background: #FFFFFF; }
+  h1 { font-size: 18pt; color: #051469; margin: 0 0 1.5mm 0; padding-bottom: 1.5mm; border-bottom: 2.5pt solid #EBC313; }
+  h2 { font-size: 11.5pt; color: #013996; border-bottom: 1pt solid #0A6EDC; padding-bottom: 1mm; margin: 6mm 0 2mm 0; page-break-after: avoid; }
+  .sub { color: #013996; margin-bottom: 4mm; }
+  .borrador { color: #051469; background: #FEE72B; font-weight: bold; font-size: 11pt; border: 1pt solid #EBC313; padding: 2mm; margin-bottom: 4mm; text-align: center; }
   table { width: 100%; border-collapse: collapse; margin: 1mm 0 2mm 0; page-break-inside: auto; }
   tr { page-break-inside: avoid; }
-  th { background: #e8eef2; text-align: left; font-weight: bold; }
-  th, td { border: 0.5pt solid #b9c3cb; padding: 1.2mm 1.5mm; vertical-align: top; }
+  th { background: #051469; color: #FFFFFF; text-align: left; font-weight: bold; }
+  th, td { border: 0.5pt solid #0A6EDC; padding: 1.4mm 1.6mm; vertical-align: top; }
+  td { background: #FFFFFF; color: #000000; }
   td.n, th.n { text-align: right; }
-  .kpis td { border: none; padding: 0 3mm 2mm 0; width: 16%; }
-  .kpi { border: 0.5pt solid #b9c3cb; padding: 2mm; }
-  .kpi b { display: block; font-size: 14pt; color: #0b4f71; }
-  .texto { white-space: pre-wrap; line-height: 1.35; }
-  .vacio { color: #5b6672; font-style: italic; }
-  .pie { color: #5b6672; font-size: 7.5pt; margin-top: 6mm; }
+  .kpis td { border: none; padding: 0 3mm 2mm 0; width: 16%; background: #FFFFFF; }
+  .kpi { border: 0.5pt solid #0A6EDC; border-top: 2.5pt solid #EBC313; padding: 2mm; color: #013996; }
+  .kpi b { display: block; font-size: 15pt; color: #051469; margin-top: 0.5mm; }
+  .texto { white-space: pre-wrap; line-height: 1.35; color: #000000; }
+  .vacio { color: #013996; font-style: italic; }
+  .pie { color: #013996; font-size: 7.5pt; margin-top: 6mm; }
 </style>
 </head>
 <body>
