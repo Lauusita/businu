@@ -52,6 +52,8 @@ public class SecurityConfig {
                         // Formulario público de PQRS (código QR): la página y el envío; la gestión exige token
                         .requestMatchers(HttpMethod.GET, "/pqrs", "/pqrs/index.html").permitAll()
                         .requestMatchers(HttpMethod.POST, "/pqrs/radicar").permitAll()
+                        // Recuperación de contraseña: la protección es el token del correo, no el JWT
+                        .requestMatchers(HttpMethod.POST, "/auth/request-password-change", "/auth/new-password").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
