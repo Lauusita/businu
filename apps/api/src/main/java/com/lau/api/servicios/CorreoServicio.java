@@ -14,6 +14,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.thymeleaf.exceptions.TemplateEngineException;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
@@ -53,14 +54,14 @@ public class CorreoServicio {
                     new Context(Locale.of("es", "CO"), Map.of("titulo", asunto, "cuerpo", cuerpo)));
 
             MimeMessage mensaje = sender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensaje, false, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
             helper.setFrom(remitente);
             helper.setTo(destinatario);
             helper.setSubject(asunto);
             helper.setText(cuerpo, html);
-            sender.send(mensaje);                       // saveChanges() asigna el Message-ID antes de enviar
+            sender.send(mensaje);
             return new Envio(Instant.now(), mensaje.getMessageID());
-        } catch (MessagingException | MailException e) {
+        } catch (MessagingException | MailException | TemplateEngineException e) {
             throw new CorreoException("No se pudo enviar el correo: " + e.getMessage());
         }
     }
