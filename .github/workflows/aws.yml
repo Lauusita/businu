@@ -1,0 +1,56 @@
+name: Desplegar API en ECS
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "apps/api/**", ".github/workflows/desplegar-api.yml" ]
+  workflow_dispatch:            # botón para desplegar a mano desde la pestaña Actions
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: businu-api/prod
+  ECS_CLUSTER: default
+  ECS_SERVICE: businu-api
+
+permissions:
+  contents: read
+  id-token: write               # necesario para OIDC
+
+concurrency:
+  group: desplegar-api
+  cancel-in-progress: false     # nunca dos despliegues a la vez
+
+jobs:
+  deploy:
+    name: Desplegar
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Credenciales de AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login en Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Construir y subir la imagen
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGEN="$REGISTRY/$ECR_REPOSITORY"
+          docker build -t "$IMAGEN:$IMAGE_TAG" -t "$IMAGEN:latest" apps/api
+          docker push "$IMAGEN:$IMAGE_TAG"
+          docker push "$IMAGEN:latest"
+
+      - name: Desplegar en ECS
+        run: |
+          aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" --force-new-deployment > /dev/null
+          aws ecs wait services-stable --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE"
