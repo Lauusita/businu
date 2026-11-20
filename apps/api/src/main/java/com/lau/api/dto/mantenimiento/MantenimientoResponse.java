@@ -1,10 +1,8 @@
 package com.lau.api.dto.mantenimiento;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.lau.api.dominio.enums.operacion.CondicionesMecanicas;
 import com.lau.api.dominio.enums.operacion.Embarcaciones;
 import com.lau.api.dominio.enums.mantenimiento.*;
-import com.lau.api.dominio.enums.seguimiento.Severidad;
 import com.lau.api.dto.combustible.AbastecimientoResponse.SoporteDTO;
 import com.lau.api.dto.comun.NovedadMecanicaDTO;
 
@@ -20,7 +18,7 @@ public record MantenimientoResponse(
         Embarcaciones embarcacion,
         MotorResumen motor,                    // solo si se intervino un motor
         TipoMantenimiento tipo,
-        SistemaIntervenido sistema,
+        String sistema,
         Instant fechaIntervencion,
         String descripcionActividades,
         String ejecutadoPor,
@@ -40,7 +38,7 @@ public record MantenimientoResponse(
 
     public record MotorResumen(UUID id, String serial, String modelo) { }
 
-    public record Repuesto(RepuestoInsumo item, String descripcion, BigDecimal cantidad, String unidad,
+    public record Repuesto(String item, String descripcion, BigDecimal cantidad, String unidad,
                            BigDecimal costo) { }
 
     public record Recomendacion(TipoRecomendacion tipo, String descripcion) { }

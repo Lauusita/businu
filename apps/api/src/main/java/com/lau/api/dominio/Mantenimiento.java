@@ -1,5 +1,7 @@
 package com.lau.api.dominio;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import com.lau.api.dominio.enums.mantenimiento.SistemaIntervenido;
 import com.lau.api.dominio.enums.mantenimiento.TipoMantenimiento;
 import com.lau.api.dominio.enums.personal.Rol;
@@ -20,6 +22,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
+@Audited
 @Table(name = "mantenimientos",
         indexes = @Index(name = "ix_mantenimiento_embarcacion_fecha", columnList = "embarcacion_id, fecha_intervencion"))
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -69,6 +72,7 @@ public class Mantenimiento extends BaseEntity {
     @Column(name = "sin_repuestos", nullable = false)
     private boolean sinRepuestos;
 
+    @NotAudited   // R5: Envers no soporta bien listas de embebidos; el cambio queda como revisión del registro dueño
     @ElementCollection
     @CollectionTable(name = "mantenimiento_repuestos", joinColumns = @JoinColumn(name = "mantenimiento_id"))
     private List<RepuestoUtilizado> repuestos = new ArrayList<>();
@@ -78,12 +82,14 @@ public class Mantenimiento extends BaseEntity {
     @Column(name = "sin_novedades", nullable = false)
     private boolean sinNovedades;
 
+    @NotAudited   // R5: Envers no soporta bien listas de embebidos; el cambio queda como revisión del registro dueño
     @ElementCollection
     @CollectionTable(name = "mantenimiento_novedades", joinColumns = @JoinColumn(name = "mantenimiento_id"))
     private List<NovedadMecanica> novedades = new ArrayList<>();
 
     // ---- Recomendaciones (0..3, una por tipo) ----
 
+    @NotAudited   // R5: Envers no soporta bien listas de embebidos; el cambio queda como revisión del registro dueño
     @ElementCollection
     @CollectionTable(name = "mantenimiento_recomendaciones", joinColumns = @JoinColumn(name = "mantenimiento_id"))
     private List<RecomendacionMantenimiento> recomendaciones = new ArrayList<>();
@@ -125,8 +131,9 @@ public class Mantenimiento extends BaseEntity {
         if (responsable.getRol() != Rol.OPERADOR_EMBARCACION) {
             throw new BusinessException("El responsable del mantenimiento debe ser un operador de embarcación");
         }
-        if (!responsable.isDisponibilidad()) {
-            throw new BusinessException("El responsable del mantenimiento no se encuentra activo");
+        // Contrato, no disponibilidad: un operador puede estar navegando en la otra embarcación
+        if (!responsable.isContratoActivo()) {
+            throw new BusinessException("El responsable del mantenimiento no tiene contrato activo");
         }
         if (costoManoObra != null && costoManoObra.signum() < 0) {
             throw new BusinessException("El costo de mano de obra no puede ser negativo");

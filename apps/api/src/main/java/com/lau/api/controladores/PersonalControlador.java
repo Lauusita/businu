@@ -22,11 +22,9 @@ import java.util.UUID;
 @RequestMapping("/personal")
 public class PersonalControlador {
     private final PersonalServicio personalServicio;
-    private final PersonalMapper personalMapper;
 
-    public PersonalControlador(PersonalServicio personalServicio, PersonalMapper personalMapper) {
+    public PersonalControlador(PersonalServicio personalServicio) {
         this.personalServicio = personalServicio;
-        this.personalMapper = personalMapper;
     }
 
     @GetMapping
@@ -62,6 +60,8 @@ public class PersonalControlador {
         personalServicio.desactivarCuenta(id, auth.id());
     }
 
+    /** El operador también la necesita para armar el zarpe (ids de la tripulación). */
+    @PreAuthorize("hasAnyRole('SUPERVISOR','OPERADOR_EMBARCACION')")
     @GetMapping("/tripulacion-disponible")
     public List<PersonalResponse> tripulacionDisponible() {
         return personalServicio.tripulacionDisponible();

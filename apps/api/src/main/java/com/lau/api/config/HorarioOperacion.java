@@ -15,7 +15,8 @@ import java.util.stream.Collectors;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Horario de prestación del servicio (§2 del anexo: lunes a viernes de 05:00 a 21:00).
+ * Horario de prestación del servicio: 05:00 a 21:00 (§7.1.1). Días: lunes a domingo por decisión de
+ * negocio (el anexo indica L-V); se configuran en operacion.dias.
  * Se configura en application.properties con el prefijo "operacion".
  *
  * @param toleranciaCierre margen después de horaFin para registrar llegadas, paradas y cierres
@@ -36,7 +37,7 @@ public record HorarioOperacion(
         horaInicio = horaInicio != null ? horaInicio : LocalTime.of(5, 0);
         horaFin = horaFin != null ? horaFin : LocalTime.of(21, 0);
         dias = (dias == null || dias.isEmpty())
-                ? EnumSet.range(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+                ? EnumSet.allOf(DayOfWeek.class)
                 : EnumSet.copyOf(dias);
         toleranciaCierre = toleranciaCierre != null ? toleranciaCierre : Duration.ofMinutes(30);
         if (!horaInicio.isBefore(horaFin)) {

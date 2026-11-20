@@ -1,8 +1,9 @@
 package com.lau.api.controladores;
 
-import com.lau.api.dto.login.LoginResponse;
 import com.lau.api.dto.login.LoginRequest;
+import com.lau.api.dto.login.LoginResponse;
 import com.lau.api.dto.personal.PersonalAuth;
+import com.lau.api.dto.personal.PersonalResponse;
 import com.lau.api.servicios.AuthServicio;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,9 +24,9 @@ public class AuthControlador {
         return servicio.login(request);
     }
 
-    @GetMapping
-    public void getDetails(
-            @AuthenticationPrincipal PersonalAuth personalAuth) {
-
+    /** Usuario autenticado: la identidad sale del token, nunca de un parámetro del cliente. */
+    @GetMapping("/me")
+    public PersonalResponse me(@AuthenticationPrincipal PersonalAuth auth) {
+        return servicio.me(auth.id());
     }
 }

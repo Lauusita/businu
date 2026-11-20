@@ -1,6 +1,7 @@
 package com.lau.api.config;
 
 import com.lau.api.dominio.Embarcacion;
+import com.lau.api.dominio.MotivoSuspension;
 import com.lau.api.dominio.Operacion;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dominio.Usuario;
@@ -29,6 +30,7 @@ import java.util.Set;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,10 +41,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @Profile("!prod")
+@Order(1)          // antes de SupervisorInicial: en dev los datos de prueba ya traen supervisor
 public class Bootstrap implements ApplicationRunner {
 
     private static final ZoneId COLOMBIA = ZoneId.of("America/Bogota");
-    private static final LocalDate INICIO = LocalDate.of(2026, 12, 1);
 
     private final EmbarcacionRepositorio embarcaciones;
     private final PersonalRepositorio personal;
@@ -117,7 +119,7 @@ public class Bootstrap implements ApplicationRunner {
             Personal p = new Personal(TipoIdentificacion.CC, f[0], f[1], f[2], rol,
                     rol == Rol.GUIA_TURISTICA ? TipoVinculacion.PRESTACION_SERVICIOS : TipoVinculacion.LABORAL,
                     "personal" + i + "@businu.test",
-                    INICIO,
+                    LocalDate.now(COLOMBIA).minusMonths(1),   // vinculación en el pasado (N-7)
                     rol.usaSistema() ? clave : null);   // los guías no tienen contraseña
             lista.add(p);
         }
@@ -145,7 +147,9 @@ public class Bootstrap implements ApplicationRunner {
         // Un viaje suspendido por tormenta (§7.1.7), sin pasajeros
         Operacion suspendido = nuevaOperacion(yapel, false, ayer.atTime(14, 30), "1067900017", "1067900018", "1067900024");
         suspendido.actualizarBitacora(CondicionClimatica.TORMENTA_ELECTRICA, NivelRio.NORMAL, Operacion.SIN_NOVEDADES, Operacion.SIN_NOVEDADES);
-        suspendido.suspender(suspendido.getFechaHoraInicio().plusSeconds(600), "Tormenta eléctrica: suspensión preventiva");
+        suspendido.registrarHorometrosFinales(horometroMas(yapel, "0.2"));
+        suspendido.suspender(suspendido.getFechaHoraInicio().plusSeconds(600),
+                new MotivoSuspension(CausaSuspension.CONDICION_CLIMATICA, "Tormenta eléctrica: suspensión preventiva", null));
 
         List<Operacion> todas = new ArrayList<>(viajes);
         todas.add(suspendido);
@@ -176,6 +180,7 @@ public class Bootstrap implements ApplicationRunner {
                     Map.of(destino, abordanCalle22), llegada22);
         }
 
+        op.registrarHorometrosFinales(horometroMas(embarcacion, "0.9"));   // R37: 55 min de navegación
         op.finalizar(inicio.plusSeconds(55 * 60), null);
         return op;
     }
@@ -192,7 +197,15 @@ public class Bootstrap implements ApplicationRunner {
         op.agregarTripulante(piloto);
         op.agregarTripulante(buscar(auxiliar));
         op.agregarTripulante(buscar(guia));
+        op.registrarHorometrosIniciales(Map.of());      // R37: última lectura conocida de cada motor
         return op;
+    }
+
+    /** Lectura actual de cada motor + las horas indicadas. */
+    private static Map<java.util.UUID, java.math.BigDecimal> horometroMas(Embarcacion e, String horas) {
+        Map<java.util.UUID, java.math.BigDecimal> lecturas = new java.util.HashMap<>();
+        e.getMotores().forEach(m -> lecturas.put(m.getId(), m.getHorometroActual().add(new java.math.BigDecimal(horas))));
+        return lecturas;
     }
 
     /** Taquillero del turno de la mañana en cada embarcadero. */

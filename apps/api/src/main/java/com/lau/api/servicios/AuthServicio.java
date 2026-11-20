@@ -4,6 +4,8 @@ import com.lau.api.config.TokenUtils;
 import com.lau.api.dominio.Personal;
 import com.lau.api.dto.login.LoginRequest;
 import com.lau.api.dto.login.LoginResponse;
+import com.lau.api.dto.personal.PersonalResponse;
+import com.lau.api.mappers.PersonalMapper;
 import com.lau.api.exceptions.BusinessException;
 import com.lau.api.exceptions.NotFoundException;
 import com.lau.api.exceptions.UnauthorizedException;
@@ -22,8 +24,11 @@ public class AuthServicio {
     private final PasswordEncoder encoder;
     private final TokenUtils tokenUtils;
     private final String hashFalso;
+    private final PersonalMapper mapper;
 
-    public AuthServicio(PersonalRepositorio personal, PasswordEncoder encoder, TokenUtils tokenUtils) {
+    public AuthServicio(PersonalRepositorio personal, PasswordEncoder encoder, TokenUtils tokenUtils,
+                        PersonalMapper mapper) {
+        this.mapper = mapper;
         this.personal = personal;
         this.encoder = encoder;
         this.tokenUtils = tokenUtils;
@@ -48,7 +53,15 @@ public class AuthServicio {
                 p.getId(), p.nombreCompleto(), p.getRol());
     }
 
-//    public Personal me(LoginRequest r) {
-//
-//    }
+    /**
+     * Datos del usuario del token. Si la persona fue retirada o perdió el acceso después de recibir
+     * el token, se responde 401 aunque el token siga vigente.
+     */
+    @Transactional(readOnly = true)
+    public PersonalResponse me(java.util.UUID personalId) {
+        return personal.findById(personalId)
+                .filter(Personal::tieneAcceso)
+                .map(mapper::toResponse)
+                .orElseThrow(() -> new UnauthorizedException("La sesión ya no es válida"));
+    }
 }

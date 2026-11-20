@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,11 +41,14 @@ public class MotorControlador {
         return motorServicio.obtener(id);
     }
 
+    @PreAuthorize("hasRole('SUPERVISOR')")
     @PostMapping
     public ResponseEntity<MotorResponse> registrar(@Valid @RequestBody MotorRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(motorServicio.registrar(request));
     }
 
+    /** Ajuste manual (p. ej. al registrar el motor o tras un cambio de tablero). El uso normal llega por la bitácora. */
+    @PreAuthorize("hasRole('SUPERVISOR')")
     @PatchMapping("/{id}/horometro")
     public MotorResponse registrarLectura(@PathVariable UUID id,
                                           @Valid @RequestBody LecturaHorometroRequest request) {

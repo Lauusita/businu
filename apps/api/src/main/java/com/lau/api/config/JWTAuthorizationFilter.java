@@ -26,7 +26,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getServletPath().startsWith("/auth/");
+        return SecurityConfig.RUTA_LOGIN.equals(request.getServletPath());
     }
 
     @Override
@@ -58,6 +58,11 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
         SecurityContextHolder.clearContext();
         ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, mensaje);
         p.setProperty("code", error);                       // TOKEN_EXPIRED / UNAUTHORIZED
+        response.setStatus(HttpStatus.UNAUTHORIZED.value()); // N-26: antes salía 200
+        response.setCharacterEncoding("UTF-8");              // N-26: tildes del mensaje
+        if (expirado) {
+            response.setHeader("X-Token-Expired", "true");   // expuesto en CORS para que el front renueve sesión
+        }
         response.setContentType("application/problem+json");
         MAPPER.writeValue(response.getWriter(), p);
     }

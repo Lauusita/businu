@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title th:text="'Hoja de vida ' + ${h.embarcacion.nombre}">Hoja de vida</title>
+<style>
+  @page { size: letter landscape; margin: 16mm 14mm 18mm 14mm;
+    @bottom-left { content: "BUSINÚ · Hoja de vida"; font-size: 8pt; color: #013996; font-family: Helvetica, Arial, sans-serif; }
+    @bottom-right { content: "Página " counter(page) " de " counter(pages); font-size: 8pt; color: #013996; font-family: Helvetica, Arial, sans-serif; } }
+  header { display: flex; justify-content: center; margin: 15px }
+  header img {height: 40px; width: 150px; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 9pt; color: #000000; background: #FFFFFF; }
+  h1 { text-align: center; font-size: 18pt; color: #051469; margin: 0 0 1.5mm 0; padding-bottom: 1.5mm; border-bottom: 2.5pt solid #EBC313; }
+  h2 { font-size: 11.5pt; color: #013996; border-bottom: 1pt solid #0A6EDC; padding-bottom: 1mm; margin: 6mm 0 2mm 0; }
+  table { width: 100%; border-collapse: collapse; margin: 1mm 0 2mm 0; }
+  tr { page-break-inside: avoid; }
+  th { background: #051469; color: #FFFFFF; text-align: left; font-weight: bold; }
+  th, td { border: 0.5pt solid #0A6EDC; padding: 1.4mm 1.6mm; vertical-align: top; }
+  td { background: #FFFFFF; color: #000000; }
+  td.n, th.n { text-align: right; }
+  .sub { color: #013996; margin-bottom: 4mm; }
+  .sub b { color: #051469; }
+</style>
+</head>
+<header>
+  <img alt="businu" src="bg_white_businu.png"></img>
+</header>
+<body>
+<h1 th:text="'Hoja de vida - ' + ${h.embarcacion.nombre}">Hoja de vida</h1>
+<div class="sub" th:text="'Patente ' + ${h.embarcacion.patente} + ' · Capacidad ' + ${h.embarcacion.capacidadPasajeros} + ' pasajeros · Estado ' + ${h.embarcacion.estado} + ' · Generada el ' + ${fmt.fechaHora(generada)}"/>
+
+<h2>Motores</h2>
+<table>
+  <tr><th>Marca</th><th>Modelo</th><th>Serial</th><th class="n">Potencia (HP)</th></tr>
+  <tr th:each="m : ${h.embarcacion.motores}"><td th:text="${m.marca}"/><td th:text="${m.modelo}"/><td th:text="${m.serial}"/><td class="n" th:text="${m.potenciaHp}"/></tr>
+</table>
+
+<h2>Resumen</h2>
+<table>
+  <tr><th>Intervenciones</th><th>Preventivas</th><th>Correctivas</th><th>Última intervención</th><th>Próxima intervención</th><th class="n">Costo total</th></tr>
+  <tr><td th:text="${h.totalIntervenciones}"/><td th:text="${h.preventivos}"/><td th:text="${h.correctivos}"/>
+      <td th:text="${fmt.fecha(h.ultimaIntervencion)}"/><td th:text="${fmt.fecha(h.proximaIntervencion)}"/>
+      <td class="n" th:text="${'$' + fmt.numero(h.costoTotalMantenimiento)}"/></tr>
+</table>
+
+<h2>Intervenciones</h2>
+<table>
+  <tr><th>Fecha</th><th>Tipo</th><th>Sistema / motor</th><th>Actividades</th><th>Repuestos</th><th>Novedades</th><th>Alertas y recomendaciones</th><th>Próxima</th><th class="n">Costo</th></tr>
+  <tr th:each="i : ${h.intervenciones}">
+    <td th:text="${fmt.fecha(i.fechaIntervencion)}"/>
+    <td th:text="${i.tipo}"/>
+    <td th:text="${i.sistema + (i.motor != null ? ' · ' + i.motor.serial : '')}"/>
+    <td th:text="${i.descripcionActividades + ' (ejecutó: ' + i.ejecutadoPor + '; responsable: ' + i.responsable + ')'}"/>
+    <td><span th:if="${i.sinRepuestos}">No aplica</span><div th:each="r : ${i.repuestos}" th:text="${r.item + ' x ' + fmt.numero(r.cantidad) + ' ' + r.unidad}"/></td>
+    <td><span th:if="${i.sinNovedades}">Ninguna</span><div th:each="n : ${i.novedades}" th:text="${n.condicion + ' (' + n.severidad + ')'}"/></td>
+    <td><div th:each="r : ${i.recomendaciones}" th:text="${r.tipo + ': ' + r.descripcion}"/></td>
+    <td th:text="${i.proximaIntervencion != null ? fmt.fecha(i.proximaIntervencion) : i.condicionProximaIntervencion}"/>
+    <td class="n" th:text="${'$' + fmt.numero(i.costoTotal)}"/>
+  </tr>
+</table>
+</body>
+</html>

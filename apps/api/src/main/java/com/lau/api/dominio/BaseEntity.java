@@ -40,6 +40,16 @@ public abstract class BaseEntity {
     @Column(name = "actualizado_en", nullable = false)
     private Instant actualizadoEn;
 
+    /** R5: quién creó el registro (id de Personal). Null si lo creó el sistema (p. ej. datos de prueba). */
+    @CreatedBy
+    @Column(name = "creado_por", updatable = false)
+    private UUID creadoPor;
+
+    /** R5: quién hizo la última modificación. El historial completo está en las tablas *_aud (Envers). */
+    @LastModifiedBy
+    @Column(name = "modificado_por")
+    private UUID modificadoPor;
+
     protected BaseEntity() {
         this.id = UUID.randomUUID();
     }

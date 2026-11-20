@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,7 +22,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableMethodSecurity   // habilita @PreAuthorize("hasRole('SUPERVISOR')") si lo quieres usar
 public class SecurityConfig {
-    public static final String RUTA_AUTENTICACION = "/autenticacion";
+    /** Única ruta pública. /auth/me y el resto de /auth exigen token. */
+    public static final String RUTA_LOGIN = "/auth/login";
 
     @Bean
     public JWTAuthorizationFilter jwtAuthorizationFilter(TokenUtils tokenUtils) {
@@ -46,7 +48,10 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/error").permitAll()
+                        .requestMatchers(RUTA_LOGIN, "/error").permitAll()
+                        // Formulario público de PQRS (código QR): la página y el envío; la gestión exige token
+                        .requestMatchers(HttpMethod.GET, "/pqrs", "/pqrs/index.html").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/pqrs/radicar").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -56,7 +61,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of("http://localhost:5173"));     // Vite; agrega el dominio de producción
+        cors.setAllowedOrigins(List.of("http://localhost:5173", "https://businu.taqsas.co"));     // Vite; agrega el dominio de producción
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         cors.setExposedHeaders(List.of("X-Token-Expired", "Location"));
