@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo}">BUSINÚ</title>
+</head>
+<body style="margin:0; padding:0; background:#F2F4F8; font-family:Arial, Helvetica, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2F4F8; padding:24px 12px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                   style="max-width:600px; background:#FFFFFF; border-radius:10px; overflow:hidden; border:1px solid #0A6EDC;">
+                <!-- Encabezado -->
+                <tr>
+                    <td style="background:#051469; padding:20px 24px; border-bottom:4px solid #EBC313;">
+                        <div style="color:#FFFFFF; font-size:20px; font-weight:bold;">BUSINÚ - Transporte fluvial</div>
+                        <div style="color:#FEE72B; font-size:13px; margin-top:4px;">Operación piloto en el río Sinú</div>
+                    </td>
+                </tr>
+                <!-- Asunto -->
+                <tr>
+                    <td style="padding:24px 24px 0;">
+                        <h1 th:text="${titulo}" style="margin:0; font-size:18px; color:#013996;">Asunto</h1>
+                    </td>
+                </tr>
+                <!-- Cuerpo: se escapa y conserva los saltos de línea -->
+                <tr>
+                    <td style="padding:16px 24px 24px;">
+                        <div th:text="${cuerpo}"
+                             style="white-space:pre-line; font-size:15px; line-height:1.5; color:#000000;">Mensaje</div>
+                    </td>
+                </tr>
+                <!-- Pie -->
+                <tr>
+                    <td style="background:#F2F4F8; padding:14px 24px; border-top:1px solid #0A6EDC;
+                       font-size:12px; color:#013996; text-align:center;">
+                        Mensaje automático del Sistema de información BUSINÚ. Por favor no responda a este correo.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

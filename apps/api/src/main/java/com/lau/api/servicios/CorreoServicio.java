@@ -3,12 +3,19 @@ package com.lau.api.servicios;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.time.Instant;
+import java.util.Locale;
+import java.util.Map;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 /**
  * Envío de correo por SMTP (R50). El servidor se configura con spring.mail.* (variables SPRING_MAIL_HOST,
@@ -17,14 +24,22 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CorreoServicio {
-
+    private final String PLANTILLA_BASE = "base";
     private final ObjectProvider<JavaMailSender> mailSender;
     private final String remitente;
-
+    private final TemplateEngine motor;
     public CorreoServicio(ObjectProvider<JavaMailSender> mailSender,
                           @Value("${businu.correo.remitente}") String remitente) {
         this.mailSender = mailSender;
         this.remitente = remitente;
+
+        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        resolver.setPrefix("plantillas/correo/");
+        resolver.setSuffix(".html");
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        this.motor = new TemplateEngine();
+        this.motor.setTemplateResolver(resolver);
     }
 
     /** Envía el correo y devuelve la constancia del servidor. Lanza CorreoException si no se pudo enviar. */
@@ -34,12 +49,15 @@ public class CorreoServicio {
             throw new CorreoException("El servicio de correo no está configurado (spring.mail.host)");
         }
         try {
+            String html = motor.process(PLANTILLA_BASE,
+                    new Context(Locale.of("es", "CO"), Map.of("titulo", asunto, "cuerpo", cuerpo)));
+
             MimeMessage mensaje = sender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, false, "UTF-8");
             helper.setFrom(remitente);
             helper.setTo(destinatario);
             helper.setSubject(asunto);
-            helper.setText(cuerpo, false);
+            helper.setText(cuerpo, html);
             sender.send(mensaje);                       // saveChanges() asigna el Message-ID antes de enviar
             return new Envio(Instant.now(), mensaje.getMessageID());
         } catch (MessagingException | MailException e) {
