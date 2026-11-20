@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Locale;
 import java.util.Map;
+
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -31,12 +33,13 @@ public class GeneradorPdf {
         this.motor.setTemplateResolver(resolver);
     }
 
-    public byte[] generar(String plantilla, Map<String, Object> variables) {
+    public byte[] generar(String plantilla, Map<String, Object> variables) throws IOException {
         String html = motor.process(plantilla, new Context(Locale.of("es", "CO"), variables));
+        String baseUrl = new ClassPathResource("static/").getURL().toExternalForm();
         try (ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
-            builder.withHtmlContent(html, null);
+            builder.withHtmlContent(html, baseUrl);
             builder.toStream(salida);
             builder.run();
             return salida.toByteArray();

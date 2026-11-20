@@ -7,8 +7,10 @@
   @page { size: letter landscape; margin: 16mm 14mm 18mm 14mm;
     @bottom-left { content: "BUSINÚ · Hoja de vida"; font-size: 8pt; color: #013996; font-family: Helvetica, Arial, sans-serif; }
     @bottom-right { content: "Página " counter(page) " de " counter(pages); font-size: 8pt; color: #013996; font-family: Helvetica, Arial, sans-serif; } }
+  header { display: flex; justify-content: center; margin: 15px }
+  header img {height: 40px; width: 150px; }
   body { font-family: Helvetica, Arial, sans-serif; font-size: 9pt; color: #000000; background: #FFFFFF; }
-  h1 { font-size: 18pt; color: #051469; margin: 0 0 1.5mm 0; padding-bottom: 1.5mm; border-bottom: 2.5pt solid #EBC313; }
+  h1 { text-align: center; font-size: 18pt; color: #051469; margin: 0 0 1.5mm 0; padding-bottom: 1.5mm; border-bottom: 2.5pt solid #EBC313; }
   h2 { font-size: 11.5pt; color: #013996; border-bottom: 1pt solid #0A6EDC; padding-bottom: 1mm; margin: 6mm 0 2mm 0; }
   table { width: 100%; border-collapse: collapse; margin: 1mm 0 2mm 0; }
   tr { page-break-inside: avoid; }
@@ -20,6 +22,9 @@
   .sub b { color: #051469; }
 </style>
 </head>
+<header>
+  <img alt="businu" src="bg_white_businu.png"></img>
+</header>
 <body>
 <h1 th:text="'Hoja de vida - ' + ${h.embarcacion.nombre}">Hoja de vida</h1>
 <div class="sub" th:text="'Patente ' + ${h.embarcacion.patente} + ' · Capacidad ' + ${h.embarcacion.capacidadPasajeros} + ' pasajeros · Estado ' + ${h.embarcacion.estado} + ' · Generada el ' + ${fmt.fechaHora(generada)}"/>

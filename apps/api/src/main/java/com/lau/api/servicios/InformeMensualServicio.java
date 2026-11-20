@@ -17,6 +17,8 @@ import com.lau.api.repositorio.InformeMensualRepositorio;
 import com.lau.api.repositorio.PersonalRepositorio;
 import com.lau.api.utilidades.Formato;
 import com.lau.api.utilidades.GeneradorPdf;
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -97,7 +99,7 @@ public class InformeMensualServicio {
     }
 
     /** PDF: cifras congeladas si está cerrado; en vivo y marcado como BORRADOR si no. */
-    public byte[] pdf(YearMonth mes) {
+    public byte[] pdf(YearMonth mes) throws IOException {
         InformeMensualResponse r = obtener(mes);
         Map<String, Object> v = new HashMap<>();
         v.put("informe", r);

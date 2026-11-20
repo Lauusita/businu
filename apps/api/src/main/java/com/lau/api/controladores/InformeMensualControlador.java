@@ -5,6 +5,8 @@ import com.lau.api.dto.informe.RedactarInformeRequest;
 import com.lau.api.dto.personal.PersonalAuth;
 import com.lau.api.servicios.InformeMensualServicio;
 import jakarta.validation.Valid;
+
+import java.io.IOException;
 import java.time.YearMonth;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -48,7 +50,7 @@ public class InformeMensualControlador {
     }
 
     @GetMapping("/pdf")
-    public ResponseEntity<byte[]> pdf(@PathVariable YearMonth mes) {
+    public ResponseEntity<byte[]> pdf(@PathVariable YearMonth mes) throws IOException {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()

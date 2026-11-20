@@ -7,6 +7,7 @@ import com.lau.api.servicios.EmbarcacionServicio;
 import com.lau.api.servicios.MantenimientoServicio;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -40,7 +41,7 @@ public class EmbarcacionControlador {
     /** Hoja de vida en PDF (§4.3, §4.8). Solo supervisor. */
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('SUPERVISOR')")
     @GetMapping("/{id}/hoja-de-vida/pdf")
-    public org.springframework.http.ResponseEntity<byte[]> hojaDeVidaPdf(@PathVariable UUID id) {
+    public org.springframework.http.ResponseEntity<byte[]> hojaDeVidaPdf(@PathVariable UUID id) throws IOException {
         HojaDeVidaResponse h = embarcacionServicio.hojaDeVida(id);
         byte[] pdf = generadorPdf.generar("hoja-de-vida", java.util.Map.of("h", h, "fmt", new com.lau.api.utilidades.Formato(),
                 "generada", java.time.Instant.now()));

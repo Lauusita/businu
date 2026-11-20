@@ -6,7 +6,7 @@
 <title>BUSINÚ · Peticiones, quejas y reclamos</title>
 <style>
   :root {
-    --dorado: #EBC313;
+    --dorado: #EDC92A;
     --amarillo: #FEE72B;
     --azul-noche: #051469;
     --azul: #013996;
@@ -18,11 +18,11 @@
   }
   * { box-sizing: border-box; }
   body {  display: flex; flex-direction: column; margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--negro); background: var(--fondo); line-height: 1.45; }
-  header { background: var(--azul-noche); color: var(--blanco); padding: 20px 16px; border-bottom: 4px solid var(--dorado); }
-  header h1 { margin: 0; font-size: 1.25rem; text-align: center }
-  header p { margin: 4px 0 0; color: var(--amarillo); font-size: .95rem; text-align: center}
+  header { display: flex; flex-direction: column; background: var(--dorado); color: var(--blanco); padding: 20px 16px; border-bottom: 4px solid var(--amarillo); }
+  header h1 { margin: 0; font-size: 1.25rem; text-align: center; color: #051469 }
+  header p { margin: 10px 0 0; color: var(--azul-noche); font-size: .95rem; text-align: center; font-style: italic}
   main { max-width: 640px; margin: 0 auto; padding: 16px; }
-  form, .resultado { background: var(--blanco); border: 1px solid var(--borde); border-top: 4px solid var(--azul); border-radius: 10px; padding: 16px; }
+  form, .resultado { background: var(--blanco); border: 4px solid var(--amarillo); border-top: 4px solid var(--azul); border-radius: 10px; padding: 16px; }
   label { display: block; font-weight: 600; margin: 14px 0 6px; color: var(--azul-noche); }
   .ayuda { font-weight: 400; color: var(--azul); font-size: .9rem; }
   select, input, textarea { width: 100%; font: inherit; padding: 10px; border: 1px solid var(--borde); border-radius: 8px; background: var(--blanco); color: var(--negro); }
@@ -47,8 +47,8 @@
 </head>
 <body>
 <header>
-  <h1>BUSINÚ · Transporte fluvial</h1>
-  <p>Peticiones, quejas, reclamos, sugerencias y felicitaciones</p>
+    <img alt="businu" src="bg_yellow_businu.png" style="height: 40px; width: 200px; align-self: center; "></img>
+  <p><b>Peticiones, quejas, reclamos, sugerencias y felicitaciones</b></p>
 </header>
 <main>
   <form id="formulario" novalidate>
